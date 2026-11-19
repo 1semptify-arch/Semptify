@@ -187,15 +187,15 @@ Verify methods: `API` = pytest/contract; `UI` = browser-driven live;
 
 ### G7 — Matters, filings, representation
 
-> **Status note (2026-11-14, task-b02e2f89):** G7.1–G7.3 are visibly
-> blocked, not skipped. `/api/legal/*` requires legal/advocate/admin, but
-> tenant-only identity (PR #317 — `parse_user_id` decodes every ID as
-> `tenant`) 403s every real user, and `/legal/dashboard` redirects tenants
-> home. The professional-access model is awaiting a decision: revive
-> professional identity vs. tenant-granted relationship/share gating (the
-> `advocate` module's ADVOCACY pattern) vs. defer to the pro-role add-on
-> repo. Mock content in `legal_dashboard.html` was replaced with an honest
-> dormant page in the meantime.
+> **Status note (2026-11-19, task-b02e2f89 — RESOLVED):** Brad decided
+> 2026-11-19 to REVIVE PROFESSIONAL ROLES — legal/advocate/admin return
+> alongside tenant (supersedes the 11-14 defer recommendation).
+> `parse_user_id` decodes the real role letter again; `generate_user_id`
+> mints requested roles; `/storage/connect?role=` can mint advocate/legal
+> (`admin` stays non-mintable via OAuth — server-minted only). Onboarding
+> remains tenant-only (`ALLOWED_ROLES` unchanged, NO-TOUCH module).
+> `legal_dashboard.html` is a real workspace: matters + filings/discovery/
+> exhibits + overlay view wired to `/api/legal/*`, honest empty states.
 
 | ID | Actor | Scenario | Pass criteria | Method |
 |---|---|---|---|---|

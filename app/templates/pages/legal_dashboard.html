@@ -1,19 +1,397 @@
 {% extends "shell_base.html" %}
 {% block title %}Legal Workspace – Semptify{% endblock %}
+{% block styles %}
+{{ super() }}
+<style>
+    :root { --hdr1: var(--color-info-800); --hdr2: var(--color-info-800); --accent: var(--color-info-800); --accent2: var(--color-info); --light: var(--color-info-50); }
+    .role-banner { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: var(--text-inverse); padding: 0.45rem 0; font-size: 0.82rem; text-align: center; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 340px 1fr; gap: 1.5rem; }
+    @media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
+
+    .card { background: var(--color-white); border: 1px solid var(--bg-footer); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+    .card-title { font-weight: 700; font-size: 0.95rem; color: var(--color-gray-900); }
+    .card-body { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; }
+
+    .matter-row { padding: 0.65rem 0.5rem; border-bottom: 1px solid var(--bg-muted); cursor: pointer; font-size: 0.88rem; border-radius: 8px; }
+    .matter-row:last-child { border-bottom: none; }
+    .matter-row:hover { background: var(--light); }
+    .matter-row.selected { background: var(--light); border-left: 3px solid var(--accent); padding-left: 0.35rem; }
+    .matter-name { font-weight: 600; word-break: break-word; }
+    .matter-meta { font-size: 0.75rem; color: var(--text-muted); }
+
+    .list-row { padding: 0.6rem 0; border-bottom: 1px solid var(--bg-muted); font-size: 0.85rem; }
+    .list-row:last-child { border-bottom: none; }
+    .list-main { font-weight: 600; word-break: break-word; }
+    .list-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem; }
+    .badge { font-size: 0.72rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 6px; white-space: nowrap; background: var(--bg-muted); color: var(--text-secondary); }
+    .badge-open, .badge-filed, .badge-served, .badge-responded { background: var(--color-success-50); color: var(--color-success-800); }
+    .badge-draft, .badge-pending { background: var(--tone-300); color: var(--color-warning-800); }
+    .badge-closed, .badge-held, .badge-rejected, .badge-overdue { background: var(--bg-sidebar); color: var(--color-error); }
+
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--bg-muted); font-size: 0.88rem; }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-val { font-weight: 700; color: var(--accent); }
+
+    .btn-block { display: block; text-align: center; background: var(--light); color: var(--accent); border: 1px solid var(--color-gray-300); padding: 0.6rem; border-radius: 10px; font-weight: 700; font-size: 0.9rem; text-decoration: none; margin-bottom: 0.5rem; transition: all 0.15s; }
+    .btn-block:hover { background: var(--accent); color: var(--text-inverse); border-color: var(--accent); }
+    .btn-block { cursor: pointer; width: 100%; font-family: inherit; }
+
+    .form-field { margin-bottom: 0.6rem; }
+    .form-field label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.2rem; }
+    .form-field input, .form-field select, .form-field textarea {
+        width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--color-gray-300);
+        border-radius: 8px; font-size: 0.85rem; font-family: inherit; box-sizing: border-box;
+    }
+    .form-field textarea { resize: vertical; min-height: 3rem; }
+    .form-note { font-size: 0.75rem; margin-top: 0.5rem; }
+    .form-note.error { color: var(--color-error); }
+    .form-note.ok { color: var(--color-success-800); }
+
+    .empty-state { color: var(--text-muted); font-size: 0.88rem; padding: 0.75rem 0; line-height: 1.6; }
+    .load-error { color: var(--color-error); font-size: 0.88rem; padding: 0.75rem 0; }
+    .loading { color: var(--text-muted); font-size: 0.85rem; padding: 0.5rem 0; }
+
+    .sub-tabs { display: flex; gap: 0.4rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
+    .sub-tab { border: 1px solid var(--color-gray-300); background: var(--color-white); color: var(--text-secondary);
+        padding: 0.35rem 0.8rem; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .sub-tab.active { background: var(--accent); border-color: var(--accent); color: var(--text-inverse); }
+
+    .overlay-block { background: var(--bg-muted); border-radius: 8px; padding: 0.75rem; font-size: 0.82rem; margin-bottom: 0.6rem; }
+    .overlay-block h4 { margin: 0 0 0.4rem; font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.03em; }
+
+    .inline-add { margin-top: 0.75rem; }
+</style>
+{% endblock %}
 {% block content %}
 <p class="shell-eyebrow">Semptify</p>
 <h1>Legal workspace</h1>
-<p class="shell-lede">This area isn't open yet.</p>
+<p class="shell-lede" id="lede">Matters you are working on, with their filings, discovery, and exhibits.</p>
+<div class="role-banner">
+    ⚖️ Legal View — you see only the matters in your own workspace. Tenant documents appear only where a tenant has shared them.
+</div>
 
-<p>The legal workspace is where a legal aid office or attorney would review
-the parts of your case you choose to share with them. It is still being
-built.</p>
+<div class="main">
+    <aside>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📁 Matters</span>
+        </div>
+        <div class="card-body" id="matters-body">
+          <div class="loading">Loading matters…</div>
+        </div>
+      </div>
 
-<p>Nothing is waiting on this page. Your documents and your case record
-stay in your own storage, untouched.</p>
+      <div class="card">
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem;">➕ Open a matter</div>
+        <form id="create-matter-form">
+          <div class="form-field">
+            <label for="m-title">Matter name</label>
+            <input id="m-title" name="title" required maxlength="200" placeholder="e.g. Tenant v. Landlord — repairs">
+          </div>
+          <div class="form-field">
+            <label for="m-tenant">Tenant name (optional)</label>
+            <input id="m-tenant" name="tenant_name" maxlength="200">
+          </div>
+          <div class="form-field">
+            <label for="m-landlord">Landlord name (optional)</label>
+            <input id="m-landlord" name="landlord_name" maxlength="200">
+          </div>
+          <div class="form-field">
+            <label for="m-address">Address (optional)</label>
+            <input id="m-address" name="address" maxlength="300">
+          </div>
+          <div class="form-field">
+            <label for="m-notes">Notes (optional)</label>
+            <textarea id="m-notes" name="notes"></textarea>
+          </div>
+          <button type="submit" class="btn-block">Create matter</button>
+          <div class="form-note" id="create-note"></div>
+        </form>
+      </div>
+    </aside>
 
-<p><a href="/tenant/start">Back to your home &rarr;</a></p>
+    <div>
+      <div class="card" id="detail-card">
+        <div class="card-body">
+          <div class="empty-state" id="detail-empty">Select a matter on the left to see its filings, discovery, exhibits, and overlay view. Nothing here is fabricated — every row is a real record from this workspace.</div>
+        </div>
+      </div>
+      <div id="detail-host" hidden>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title" id="detail-title">Matter</span>
+            <span class="badge" id="detail-status"></span>
+          </div>
+          <div class="card-body" id="detail-meta"></div>
+        </div>
+
+        <div class="card">
+          <div class="sub-tabs">
+            <button type="button" class="sub-tab active" data-tab="filings">Filings</button>
+            <button type="button" class="sub-tab" data-tab="discovery">Discovery</button>
+            <button type="button" class="sub-tab" data-tab="exhibits">Exhibits</button>
+            <button type="button" class="sub-tab" data-tab="overlay">Overlay view</button>
+          </div>
+
+          <div id="tab-filings">
+            <div class="card-body" id="filings-body"><div class="loading">Loading filings…</div></div>
+            <form class="inline-add" id="add-filing-form">
+              <div class="form-field"><label for="f-type">Type</label>
+                <select id="f-type" name="filing_type"><option value="complaint">complaint</option><option value="motion">motion</option><option value="answer">answer</option><option value="discovery">discovery</option><option value="notice">notice</option><option value="brief">brief</option></select></div>
+              <div class="form-field"><label for="f-court">Court</label><input id="f-court" name="court" required maxlength="200"></div>
+              <div class="form-field"><label for="f-docket">Docket # (optional)</label><input id="f-docket" name="docket_number" maxlength="100"></div>
+              <div class="form-field"><label for="f-date">Filing date (optional)</label><input id="f-date" name="filing_date" type="date"></div>
+              <div class="form-field"><label for="f-notes">Notes (optional)</label><input id="f-notes" name="notes" maxlength="500"></div>
+              <button type="submit" class="btn-block">Add filing</button>
+              <div class="form-note" id="filing-note"></div>
+            </form>
+          </div>
+
+          <div id="tab-discovery" hidden>
+            <div class="card-body" id="discovery-body"><div class="loading">Loading discovery…</div></div>
+            <form class="inline-add" id="add-discovery-form">
+              <div class="form-field"><label for="d-type">Type</label>
+                <select id="d-type" name="discovery_type"><option value="interrogatories">interrogatories</option><option value="requests_for_production">requests for production</option><option value="requests_for_admission">requests for admission</option><option value="depositions">depositions</option></select></div>
+              <div class="form-field"><label for="d-served">Served date (optional)</label><input id="d-served" name="served_date" type="date"></div>
+              <div class="form-field"><label for="d-due">Due date (optional)</label><input id="d-due" name="due_date" type="date"></div>
+              <div class="form-field"><label for="d-notes">Notes (optional)</label><input id="d-notes" name="notes" maxlength="500"></div>
+              <button type="submit" class="btn-block">Add discovery</button>
+              <div class="form-note" id="discovery-note"></div>
+            </form>
+          </div>
+
+          <div id="tab-exhibits" hidden>
+            <div class="card-body" id="exhibits-body"><div class="loading">Loading exhibits…</div></div>
+            <form class="inline-add" id="add-exhibit-form">
+              <div class="form-field"><label for="e-desc">Description</label><input id="e-desc" name="description" required maxlength="500"></div>
+              <div class="form-field"><label for="e-path">Vault path (optional)</label><input id="e-path" name="vault_path" maxlength="500"></div>
+              <div class="form-field"><label for="e-date">Introduced on (optional)</label><input id="e-date" name="introduced_on" type="date"></div>
+              <div class="form-field"><label for="e-notes">Notes (optional)</label><input id="e-notes" name="notes" maxlength="500"></div>
+              <button type="submit" class="btn-block">Add exhibit</button>
+              <div class="form-note" id="exhibit-note"></div>
+            </form>
+          </div>
+
+          <div id="tab-overlay" hidden>
+            <div class="card-body" id="overlay-body"><div class="loading">Loading overlay…</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
 {% endblock %}
 {% block scripts %}
 {{ super() }}
+<script>
+(function () {
+    'use strict';
+
+    function esc(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    async function api(url, opts) {
+        const resp = await fetch(url, opts);
+        if (!resp.ok) {
+            const body = await resp.json().catch(function () { return {}; });
+            const err = new Error(body.detail || ('Request failed (' + resp.status + ')'));
+            err.status = resp.status;
+            throw err;
+        }
+        return resp.json();
+    }
+
+    function fmtDate(iso) {
+        if (!iso) return '';
+        try { return new Date(iso).toLocaleDateString(); } catch (e) { return iso; }
+    }
+
+    function note(id, msg, ok) {
+        const el = document.getElementById(id);
+        el.textContent = msg;
+        el.className = 'form-note ' + (ok ? 'ok' : 'error');
+    }
+
+    var selectedMatterId = null;
+
+    async function loadMatters() {
+        const host = document.getElementById('matters-body');
+        try {
+            const data = await api('/api/legal/matters');
+            if (!data.matters || !data.matters.length) {
+                host.innerHTML = '<div class="empty-state">No matters yet. Open one below — it appears here as soon as it is created.</div>';
+                return;
+            }
+            host.innerHTML = data.matters.map(function (m) {
+                return '<div class="matter-row' + (m.matter_id === selectedMatterId ? ' selected' : '') +
+                    '" data-id="' + esc(m.matter_id) + '" role="button" tabindex="0">' +
+                    '<div class="matter-name">' + esc(m.title) + '</div>' +
+                    '<div class="matter-meta">' + esc(m.status || 'open') +
+                    (m.tenant_name ? ' · ' + esc(m.tenant_name) : '') +
+                    ' · opened ' + fmtDate(m.created_at) + '</div></div>';
+            }).join('');
+            host.querySelectorAll('.matter-row').forEach(function (row) {
+                function pick() { selectMatter(row.getAttribute('data-id'), row.querySelector('.matter-name').textContent); }
+                row.addEventListener('click', pick);
+                row.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+            });
+        } catch (e) {
+            host.innerHTML = '<div class="load-error">' + esc(e.message) + '</div>';
+        }
+    }
+
+    function showTab(name) {
+        document.querySelectorAll('.sub-tab').forEach(function (t) { t.classList.toggle('active', t.getAttribute('data-tab') === name); });
+        ['filings', 'discovery', 'exhibits', 'overlay'].forEach(function (n) {
+            document.getElementById('tab-' + n).hidden = n !== name;
+        });
+    }
+
+    async function selectMatter(id, title) {
+        selectedMatterId = id;
+        document.getElementById('detail-card').hidden = true;
+        document.getElementById('detail-host').hidden = false;
+        document.getElementById('detail-title').textContent = title;
+        await loadMatters();
+        try {
+            const payload = await api('/api/legal/matters/' + encodeURIComponent(id));
+            const matter = payload.matter || payload;
+            const statusEl = document.getElementById('detail-status');
+            statusEl.textContent = matter.status || 'open';
+            statusEl.className = 'badge badge-' + (matter.status || 'open');
+            document.getElementById('detail-meta').innerHTML =
+                (matter.tenant_name ? '<div class="stat-row"><span>Tenant</span><span class="stat-val">' + esc(matter.tenant_name) + '</span></div>' : '') +
+                (matter.landlord_name ? '<div class="stat-row"><span>Landlord</span><span class="stat-val">' + esc(matter.landlord_name) + '</span></div>' : '') +
+                (matter.address ? '<div class="stat-row"><span>Address</span><span class="stat-val">' + esc(matter.address) + '</span></div>' : '') +
+                (matter.notes ? '<div class="stat-row"><span>Notes</span><span>' + esc(matter.notes) + '</span></div>' : '') +
+                '<div class="stat-row"><span>Opened</span><span>' + fmtDate(matter.created_at) + '</span></div>';
+        } catch (e) {
+            document.getElementById('detail-meta').innerHTML = '<div class="load-error">' + esc(e.message) + '</div>';
+        }
+        loadFilings(); loadDiscovery(); loadExhibits();
+        if (!document.getElementById('tab-overlay').hidden) loadOverlay();
+    }
+
+    function row(html) { return '<div class="list-row">' + html + '</div>'; }
+    function empty(msg) { return '<div class="empty-state">' + msg + '</div>'; }
+
+    async function loadFilings() {
+        const host = document.getElementById('filings-body');
+        try {
+            const data = await api('/api/legal/matters/' + selectedMatterId + '/filings');
+            host.innerHTML = data.filings.length ? data.filings.map(function (f) {
+                return row('<div class="list-main">' + esc(f.filing_type) + ' — ' + esc(f.court) +
+                    ' <span class="badge badge-' + esc(f.status) + '">' + esc(f.status) + '</span></div>' +
+                    '<div class="list-meta">' +
+                    (f.docket_number ? 'Docket ' + esc(f.docket_number) + ' · ' : '') +
+                    (f.filing_date ? 'filed ' + fmtDate(f.filing_date) + ' · ' : '') +
+                    esc(f.notes || '') + '</div>');
+            }).join('') : empty('No filings recorded on this matter yet.');
+        } catch (e) { host.innerHTML = '<div class="load-error">' + esc(e.message) + '</div>'; }
+    }
+
+    async function loadDiscovery() {
+        const host = document.getElementById('discovery-body');
+        try {
+            const data = await api('/api/legal/matters/' + selectedMatterId + '/discovery');
+            host.innerHTML = data.discovery.length ? data.discovery.map(function (d) {
+                return row('<div class="list-main">' + esc(d.discovery_type.replace(/_/g, ' ')) +
+                    ' <span class="badge badge-' + esc(d.status) + '">' + esc(d.status) + '</span></div>' +
+                    '<div class="list-meta">' +
+                    (d.served_date ? 'served ' + fmtDate(d.served_date) + ' · ' : '') +
+                    (d.due_date ? 'due ' + fmtDate(d.due_date) + ' · ' : '') +
+                    esc(d.notes || '') + '</div>');
+            }).join('') : empty('No discovery on this matter yet.');
+        } catch (e) { host.innerHTML = '<div class="load-error">' + esc(e.message) + '</div>'; }
+    }
+
+    async function loadExhibits() {
+        const host = document.getElementById('exhibits-body');
+        try {
+            const data = await api('/api/legal/matters/' + selectedMatterId + '/exhibits');
+            host.innerHTML = data.exhibits.length ? data.exhibits.map(function (x) {
+                return row('<div class="list-main">Exhibit ' + esc(String(x.exhibit_number)) + ' — ' + esc(x.description) + '</div>' +
+                    '<div class="list-meta">' +
+                    (x.vault_path ? esc(x.vault_path) + ' · ' : '') +
+                    (x.introduced_on ? 'introduced ' + fmtDate(x.introduced_on) + ' · ' : '') +
+                    esc(x.notes || '') + '</div>');
+            }).join('') : empty('No exhibits on this matter yet.');
+        } catch (e) { host.innerHTML = '<div class="load-error">' + esc(e.message) + '</div>'; }
+    }
+
+    async function loadOverlay() {
+        const host = document.getElementById('overlay-body');
+        try {
+            const data = await api('/api/legal/matters/' + selectedMatterId + '/overlay');
+            const m = data.matter || { title: document.getElementById('detail-title').textContent, status: '' };
+            const block = function (title, items, render, emptyMsg) {
+                return '<div class="overlay-block"><h4>' + title + '</h4>' +
+                    (items && items.length ? items.map(render).join('') : '<div class="empty-state">' + emptyMsg + '</div>') + '</div>';
+            };
+            host.innerHTML =
+                '<div class="overlay-block"><h4>Matter</h4>' +
+                '<div><strong>' + esc(m.title || '') + '</strong> — ' + esc(m.status || 'open') + '</div>' +
+                '<div class="list-meta">Tenant documents and tenant-granted overlays appear here per the scope the tenant granted. Nothing is shown that has not been shared.</div></div>' +
+                block('Filings', data.filings, function (f) {
+                    return row('<span class="list-main">' + esc(f.filing_type) + ' — ' + esc(f.court) + '</span> <span class="badge badge-' + esc(f.status) + '">' + esc(f.status) + '</span>');
+                }, 'None.') +
+                block('Discovery', data.discovery, function (d) {
+                    return row('<span class="list-main">' + esc(d.discovery_type.replace(/_/g, ' ')) + '</span> <span class="badge badge-' + esc(d.status) + '">' + esc(d.status) + '</span>');
+                }, 'None.') +
+                block('Exhibits', data.exhibits, function (x) {
+                    return row('<span class="list-main">#' + esc(String(x.exhibit_number)) + ' ' + esc(x.description) + '</span>');
+                }, 'None.');
+        } catch (e) { host.innerHTML = '<div class="load-error">' + esc(e.message) + '</div>'; }
+    }
+
+    document.querySelectorAll('.sub-tab').forEach(function (t) {
+        t.addEventListener('click', function () {
+            showTab(t.getAttribute('data-tab'));
+            if (t.getAttribute('data-tab') === 'overlay' && selectedMatterId) loadOverlay();
+        });
+    });
+
+    document.getElementById('create-matter-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const body = {};
+        ['title', 'tenant_name', 'landlord_name', 'address', 'notes'].forEach(function (k) {
+            const v = (fd.get(k) || '').toString().trim();
+            if (v) body[k] = v;
+        });
+        try {
+            const out = await api('/api/legal/matters', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            note('create-note', 'Matter created.', true);
+            e.target.reset();
+            await loadMatters();
+            if (out.matter && out.matter.matter_id) selectMatter(out.matter.matter_id, out.matter.title);
+        } catch (err) { note('create-note', err.message, false); }
+    });
+
+    function wireAdd(formId, urlFn, noteId, reload) {
+        document.getElementById(formId).addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const body = {};
+            fd.forEach(function (v, k) { if (String(v).trim()) body[k] = String(v).trim(); });
+            try {
+                await api(urlFn(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                note(noteId, 'Saved.', true);
+                e.target.reset();
+                reload();
+            } catch (err) { note(noteId, err.message, false); }
+        });
+    }
+
+    wireAdd('add-filing-form', function () { return '/api/legal/matters/' + selectedMatterId + '/filings'; }, 'filing-note', loadFilings);
+    wireAdd('add-discovery-form', function () { return '/api/legal/matters/' + selectedMatterId + '/discovery'; }, 'discovery-note', loadDiscovery);
+    wireAdd('add-exhibit-form', function () { return '/api/legal/matters/' + selectedMatterId + '/exhibits'; }, 'exhibit-note', loadExhibits);
+
+    loadMatters();
+})();
+</script>
 {% endblock %}
