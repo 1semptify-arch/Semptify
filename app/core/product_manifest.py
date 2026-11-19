@@ -782,6 +782,13 @@ _register(
     upl_risk_tier=UPLRiskTier.MEDIUM_HIGH,
     log_message="Legal workspace router connected — matters, filings, discovery, exhibits active",
 )
+_register(
+    "app.modules.coview.router",
+    tags=("Co-View", "Shared Viewing"),
+    tier=ProductTier.EXTENDED,
+    upl_risk_tier=UPLRiskTier.MEDIUM,
+    log_message="Co-view router connected — eyes-only shared document sessions active",
+)
 
 # Case management
 _register("app.modules.intake.router", tags=("Document Intake",), tier=ProductTier.EXTENDED)

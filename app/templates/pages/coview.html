@@ -1,0 +1,145 @@
+{% extends "shell_base.html" %}
+{% block title %}Co-view – Semptify{% endblock %}
+{% block styles %}
+{{ super() }}
+<style>
+    .cv-doc { position: relative; background: var(--color-white); border: 1px solid var(--bg-footer);
+        border-radius: 12px; height: 55vh; overflow: hidden; }
+    .cv-pointer { position: absolute; width: 14px; height: 14px; border-radius: 50%;
+        background: var(--color-info); pointer-events: none; transform: translate(-50%,-50%);
+        transition: top .2s, left .2s; box-shadow: 0 0 0 3px rgba(59,130,246,.3); display:none; }
+    .cv-status { font-size: .82rem; padding: .4rem .8rem; border-radius: 8px; margin-bottom: .75rem; }
+    .cv-status.live { background: var(--color-success-50); color: var(--color-success-800); }
+    .cv-status.degraded { background: var(--tone-300); color: var(--color-warning-800); }
+    .cv-status.ended { background: var(--bg-sidebar); color: var(--color-error); }
+    .cv-row { display: flex; gap: 1rem; flex-wrap: wrap; font-size: .85rem; }
+    .cv-field input { width: 4.5rem; padding: .3rem .4rem; border: 1px solid var(--color-gray-300);
+        border-radius: 6px; font-size: .85rem; }
+    .cv-people { font-size: .82rem; color: var(--text-secondary); margin-bottom: .5rem; }
+    .cv-qa { margin-top: 1rem; font-size: .85rem; }
+    .cv-qa-row { padding: .45rem 0; border-bottom: 1px solid var(--bg-muted); }
+    .cv-btn { background: var(--color-info-50); color: var(--color-info-800); border: 1px solid var(--color-gray-300);
+        padding: .4rem .9rem; border-radius: 8px; font-weight: 600; font-size: .82rem; cursor: pointer; font-family: inherit; }
+    .cv-btn.danger { color: var(--color-error); }
+    .cv-bar { display: flex; gap: .5rem; align-items: center; margin-top: .6rem; flex-wrap: wrap; }
+</style>
+{% endblock %}
+{% block content %}
+<p class="shell-eyebrow">Semptify</p>
+<h1>Co-view</h1>
+<p class="shell-lede" id="cv-lede">Looking at the same document together.</p>
+
+<div class="cv-status" id="cv-status">Connecting…</div>
+<div class="cv-people" id="cv-people"></div>
+<p style="font-size:.8rem;color:var(--text-muted);">Document: <strong id="cv-doc"></strong></p>
+
+<div class="cv-doc" id="cv-doc-area">
+    <div class="cv-pointer" id="cv-pointer"></div>
+    <div style="position:absolute;top:40%;left:0;right:0;text-align:center;color:var(--text-muted);font-size:.85rem;">
+        Shared view area — position and pointer sync live between everyone in the session.
+    </div>
+</div>
+
+<div class="cv-bar">
+    <span class="cv-field">Page <input id="cv-page" type="number" min="1" value="1"></span>
+    <span class="cv-field">Scroll <input id="cv-scroll" type="number" min="0" max="100" step="1" value="0">%</span>
+    <button class="cv-btn" id="cv-send-pos" type="button">Set position</button>
+    <button class="cv-btn" id="cv-invite" type="button">Copy invite token</button>
+    <button class="cv-btn danger" id="cv-end" type="button">End session</button>
+</div>
+<div id="cv-invite-note" style="font-size:.78rem;color:var(--text-muted);margin-top:.3rem;"></div>
+
+<div class="cv-qa">
+    <strong>Questions on this spot</strong>
+    <div id="cv-qa-list"></div>
+    <div class="cv-bar">
+        <input id="cv-qa-anchor" placeholder="anchor (e.g. ¶3)" style="width:6rem;padding:.3rem .4rem;border:1px solid var(--color-gray-300);border-radius:6px;">
+        <input id="cv-qa-text" placeholder="question or note" style="flex:1;padding:.3rem .4rem;border:1px solid var(--color-gray-300);border-radius:6px;">
+        <button class="cv-btn" id="cv-qa-send" type="button">Add</button>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+(function () {
+    'use strict';
+    var SID = {{ session_id | tojson }};
+    var ws = null, degraded = false, ended = false, pollTimer = null;
+
+    function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    function status(cls,msg){var e=document.getElementById('cv-status');e.className='cv-status '+cls;e.textContent=msg;}
+    function people(list){
+        document.getElementById('cv-people').textContent='In this session: '+
+            list.map(function(p){return (p.role||'?')+' ('+(p.user_id||'').slice(0,10)+'…) '+(p.side||'');}).join(' · ');
+    }
+    function applyState(st){
+        if(st.page!=null)document.getElementById('cv-page').value=st.page;
+        if(st.scroll_y!=null)document.getElementById('cv-scroll').value=Math.round((st.scroll_y||0)*100);
+        var p=st.pointer||{},el=document.getElementById('cv-pointer');
+        if(p.x!=null&&p.y!=null){el.style.display='block';el.style.left=(p.x*100)+'%';el.style.top=(p.y*100)+'%';}
+        if(st.qa){document.getElementById('cv-qa-list').innerHTML=st.qa.map(function(q){
+            return '<div class="cv-qa-row"><strong>'+esc(q.anchor||'·')+'</strong> '+esc(q.text)+
+                ' <span style="color:var(--text-muted);font-size:.75rem">'+esc((q.user_id||'').slice(0,8))+'</span></div>';}).join('');}
+    }
+    function snapshot(sess){document.getElementById('cv-doc').textContent=sess.doc_ref;people(sess.participants||[]);applyState(sess.state||{});}
+
+    function degrade(){
+        if(ended)return;
+        degraded=true;
+        status('degraded','Live link dropped — you can still view the same document separately; position refreshes every few seconds.');
+        if(!pollTimer){pollTimer=setInterval(function(){
+            fetch('/api/coview/sessions/'+SID).then(function(r){return r.ok?r.json():null;})
+                .then(function(d){if(d){snapshot(d);if(!d.active)endView();}}).catch(function(){});
+        },4000);}
+    }
+    function endView(){
+        ended=true;clearInterval(pollTimer);
+        status('ended','Session ended. Invite tokens for this session no longer work.');
+        ['cv-send-pos','cv-invite','cv-end','cv-qa-send'].forEach(function(id){document.getElementById(id).disabled=true;});
+    }
+    function connect(){
+        var wsUrl=(location.protocol==='https:'?'wss://':'ws://')+location.host+'/api/coview/ws/'+SID;
+        try{ws=new WebSocket(wsUrl);}catch(e){degrade();return;}
+        ws.onmessage=function(ev){
+            var m=JSON.parse(ev.data);
+            if(m.type==='state'&&m.session){snapshot(m.session);status('live','Live — position and pointer sync as they happen.');degraded=false;}
+            else if(m.type==='position'||m.type==='pointer'||m.type==='qa'){if(m.state)applyState(m.state);}
+            else if(m.type==='ended'){endView();}
+            else if(m.type==='revoked'||m.type==='joined'||m.type==='left'){if(m.participants)people(m.participants);}
+        };
+        ws.onclose=function(){if(!ended)degrade();};
+        ws.onerror=function(){};
+    }
+    function send(o){if(ws&&ws.readyState===1){ws.send(JSON.stringify(o));return true;}return false;}
+
+    document.getElementById('cv-send-pos').addEventListener('click',function(){
+        var page=parseInt(document.getElementById('cv-page').value,10)||1;
+        var scroll=(parseInt(document.getElementById('cv-scroll').value,10)||0)/100;
+        send({type:'position',page:page,scroll_y:scroll});
+    });
+    document.getElementById('cv-doc-area').addEventListener('click',function(e){
+        var r=e.currentTarget.getBoundingClientRect();
+        send({type:'pointer',x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height});
+    });
+    document.getElementById('cv-qa-send').addEventListener('click',function(){
+        var t=document.getElementById('cv-qa-text').value.trim();if(!t)return;
+        send({type:'qa',anchor:document.getElementById('cv-qa-anchor').value.trim(),text:t});
+        document.getElementById('cv-qa-text').value='';
+    });
+    document.getElementById('cv-invite').addEventListener('click',function(){
+        fetch('/api/coview/sessions/'+SID+'/invite',{method:'POST'}).then(function(r){return r.json();})
+            .then(function(d){
+                var note=document.getElementById('cv-invite-note');
+                if(d.join_token){note.textContent='Invite token (15 min): '+d.join_token;try{navigator.clipboard.writeText(d.join_token);}catch(e){}}
+            });
+    });
+    document.getElementById('cv-end').addEventListener('click',function(){
+        fetch('/api/coview/sessions/'+SID+'/end',{method:'POST'}).then(function(){endView();});
+    });
+
+    fetch('/api/coview/sessions/'+SID).then(function(r){return r.ok?r.json():null;})
+        .then(function(d){if(d){snapshot(d);if(!d.active){endView();}else{connect();}}else{status('ended','Session not found.');}});
+})();
+</script>
+{% endblock %}
