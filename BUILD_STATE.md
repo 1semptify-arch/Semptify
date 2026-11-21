@@ -1,3 +1,34 @@
+## Session — 2026-11-21 — test_websocket.py synced to signed-cookie /ws auth (swe-2, task task-dbe64fe1)
+
+**Context:** `TestWebSocketEvents` (and the same staleness in
+TestWebSocketProtocol/Security/Performance) still drove `/ws/events` with
+unsigned or missing `semptify_uid` cookies and expected the old
+`"broadcast"` default user_id. Since the auth-hardening commit,
+`get_user_id_from_websocket` verifies the HMAC signature via
+`verify_user_id` and returns `None` on failure, so the handler closed
+every test connection with 1008 before sending anything
+(`assert len(messages_sent) >= 2` got 0). Pre-existing breakage logged as
+intake-00b783ad.
+
+**Done:**
+- `tests/test_websocket.py` — module-level `_authed_ws(user_id)` helper
+  (signed cookie via `sign_user_id`) now used by every test that drives
+  `websocket_events`; `TestBrainWebSocket._authed_ws` delegates to it.
+- `test_websocket_user_id_from_cookies` rewritten to the real contract:
+  signed cookie -> raw user_id; missing, unsigned, tampered
+  (`user_abc123.deadbeef`), and empty cookies -> `None`.
+- `MockWebSocket.close()` now records `close_code`/`close_reason`.
+- New `test_websocket_events_requires_auth` asserts missing AND unsigned
+  cookies are accepted then closed 1008 with no `connected` message —
+  parity with `test_brain_websocket_requires_auth`.
+- Note: two dispatch workers edited this file concurrently (first
+  spawned worker stalled but had already written the same fix); changes
+  were reconciled — deduped the shadowed `test_websocket_events_requires_auth`
+  and unified on `_authed_ws`.
+- **Verified:** `pytest tests/test_websocket.py` — 28 passed, 3 skipped
+  (skips = dormant brain REST endpoints), ~47 min (conftest rebuilds
+  app+DB per test). `py_compile` clean.
+
 ## Session — 2026-11-21 — SemptifyFeedback.confirm() added; auto_mode_panel native confirm() removed (swe-2, task task-ac26452d)
 
 **Context:** `auto_mode_panel.html` `resetToDefaults()` used the blocking
