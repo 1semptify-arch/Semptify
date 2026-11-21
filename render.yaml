@@ -79,6 +79,7 @@ services:
   region: ohio
   dockerContext: .
   dockerfilePath: ./Dockerfile.render
+  healthCheckPath: /health
   domains:
   - www.semptify.org
   - semptify.org
