@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 function runAnalysis() {
-    if (window.SemptifyFeedback) { SemptifyFeedback.info('Analysis started. This may take a few moments.'); } else { alert('📊 Analysis started. This may take a few moments...'); }
+    SemptifyFeedback.info('Analysis started. This may take a few moments.');
 }
 
 function filterResults(type) {

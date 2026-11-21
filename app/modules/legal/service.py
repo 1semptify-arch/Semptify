@@ -17,15 +17,12 @@ from __future__ import annotations
 import json
 import logging
 import secrets
+from datetime import date, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
 from app.core.utc import utc_now
-
-if TYPE_CHECKING:
-    from datetime import date, datetime
 
 logger = logging.getLogger(__name__)
 

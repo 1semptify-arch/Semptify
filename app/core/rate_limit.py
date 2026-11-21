@@ -7,12 +7,22 @@ Supports Redis backend for production distributed rate limiting.
 
 import logging
 import os
+from typing import Callable, Iterable, Optional
 
 from fastapi import Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import (
+    SlowAPIMiddleware,
+    _should_exempt,
+    sync_check_limits,
+)
 from slowapi.util import get_remote_address
+from starlette.applications import Starlette
+from starlette.middleware.base import RequestResponseEndpoint
+from starlette.routing import BaseRoute, Match
+from starlette.types import Scope
 
 logger = logging.getLogger(__name__)
 
@@ -135,3 +145,96 @@ def limit_search(func):
 def limit_court_packet(func):
     """Decorator for court packet generation."""
     return limiter.limit(RATE_COURT_PACKET)(func)
+
+
+# =============================================================================
+# FastAPI >=0.141 lazy-router compatibility
+# =============================================================================
+#
+# FastAPI 0.141 made ``include_router`` lazy: ``app.routes`` holds
+# ``_IncludedRouter`` proxy nodes instead of concrete routes. Those proxies
+# have no ``endpoint`` attribute and ``matches()`` returns an empty
+# child_scope, so stock ``slowapi.middleware._find_route_handler`` resolves
+# ``None`` and ``_should_exempt`` skips the request entirely — the global
+# ``default_limits`` never engaged on any lazily-included router (proven live:
+# 210 same-path requests, zero 429s).
+#
+# ``LazyRouterSlowAPIMiddleware`` resolves the real endpoint by walking each
+# proxy's ``effective_route_contexts()`` — every candidate's ``matches()``
+# already knows its include prefix and its child_scope carries the endpoint.
+# Detection is duck-typed, so the resolver degrades to stock behaviour if
+# FastAPI ever returns to eager route inclusion.
+
+
+def find_route_handler(
+    routes: Iterable[BaseRoute], scope: Scope
+) -> Optional[Callable]:
+    """
+    Drop-in replacement for ``slowapi.middleware._find_route_handler`` that
+    can see through FastAPI >=0.141 ``_IncludedRouter`` lazy proxies.
+
+    Keeps the stock contract: last FULL match wins across ``app.routes``;
+    within one lazy router the first FULL match wins, mirroring the first-
+    match dispatch order of ``_IncludedRouter._match``.
+    """
+    handler = None
+    for route in routes:
+        effective_contexts = getattr(route, "effective_route_contexts", None)
+        if effective_contexts is not None:
+            for candidate in effective_contexts():
+                match, child_scope = candidate.matches(scope)
+                if match != Match.FULL:
+                    continue
+                endpoint = child_scope.get("endpoint") or getattr(
+                    candidate, "endpoint", None
+                )
+                if endpoint is not None:
+                    handler = endpoint
+                    break
+            continue
+        match, _ = route.matches(scope)
+        if match == Match.FULL:
+            endpoint = getattr(route, "endpoint", None)
+            if endpoint is not None:
+                handler = endpoint
+    return handler
+
+
+class LazyRouterSlowAPIMiddleware(SlowAPIMiddleware):
+    """
+    SlowAPIMiddleware that applies ``default_limits`` (and honouring of
+    ``@limiter.limit`` / ``@limiter.exempt`` lookups) to endpoints reached
+    through FastAPI >=0.141 lazy ``include_router`` proxies.
+
+    Stock ``SlowAPIMiddleware`` scans ``app.routes`` for a FULL match with an
+    ``endpoint`` attribute; ``_IncludedRouter`` nodes have neither, so every
+    lazily-included endpoint fell through to ``_should_exempt`` and was never
+    limited. Behaviour is otherwise identical to stock — same check order,
+    same exception flow, same header injection.
+    """
+
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
+        app: Starlette = request.app
+        app_limiter: Limiter = app.state.limiter
+
+        if not app_limiter.enabled:
+            return await call_next(request)
+
+        handler = find_route_handler(app.routes, request.scope)
+        if _should_exempt(app_limiter, handler):
+            return await call_next(request)
+
+        error_response, should_inject_headers = sync_check_limits(
+            app_limiter, request, handler, app
+        )
+        if error_response is not None:
+            return error_response
+
+        response = await call_next(request)
+        if should_inject_headers:
+            response = app_limiter._inject_headers(
+                response, request.state.view_rate_limit
+            )
+        return response

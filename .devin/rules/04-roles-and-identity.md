@@ -1,14 +1,17 @@
 ---
-description: SUPERSEDED — tenant-only identity (PR #317). Kept as add-on-repo reference.
+description: Professional roles revived (Brad, 2026-11-19) — legal/advocate/admin live alongside tenant.
 ---
 
-# Roles and Identity — SUPERSEDED (2026-09-23)
+# Roles and Identity — REVIVED (2026-11-19, supersedes the 2026-09-23 tenant-only note)
 
-**This repo is stateless tenant-only (PR #317). There are no pro roles, no
-role gates, and no elevation paths — every identity is a tenant and access
-beyond the tenant's own surface comes only from tenant-granted sharing.
-The definitions below are preserved for the separate pro-role add-on repo
-(networked later) — do not implement, reference, or gate on them here.**
+**Brad decided 2026-11-19 (task-b02e2f89): professional roles return in this
+repo. `parse_user_id` decodes the real role letter; `/storage/connect?role=`
+can mint `advocate`/`legal`; `admin` is NOT OAuth-mintable (server-minted
+only). Onboarding stays tenant-only (`onboarding/oauth.py ALLOWED_ROLES`,
+NO-TOUCH module) — pro accounts arrive via the storage connect path or admin
+minting, not the public onboarding flow. Tenant-granted sharing
+(ADVOCACY/CASE_SHARE) still governs what a professional sees of a tenant's
+data — a role grants access to pro surfaces, never to tenant data directly.**
 
 ## Legal sub-roles
 

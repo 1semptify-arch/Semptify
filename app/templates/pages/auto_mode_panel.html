@@ -405,11 +405,11 @@ async function saveConfiguration() {
         });
 
         if (response.ok) {
-            if (window.SemptifyFeedback) { SemptifyFeedback.success('Configuration saved successfully.'); } else { alert('✅ Configuration saved successfully!'); }
+            SemptifyFeedback.success('Configuration saved successfully.');
         }
     } catch (error) {
         console.error('Error saving configuration:', error);
-        if (window.SemptifyFeedback) { SemptifyFeedback.error('Error saving configuration.'); } else { alert('❌ Error saving configuration'); }
+        SemptifyFeedback.error('Error saving configuration.');
     }
 }
 

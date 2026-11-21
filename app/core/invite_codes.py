@@ -44,6 +44,47 @@ def generate_code(length: int = 8) -> str:
     return raw
 
 
+def normalize_code(code: str) -> str:
+    """
+    Return the canonical storage form of an invite code.
+
+    Uppercases, strips whitespace and hyphens, then re-inserts a single
+    hyphen at the midpoint for codes of length >= 6 (the same shape
+    generate_code produces). Create and lookup paths must both run
+    through this so stored codes are always findable.
+
+    Args:
+        code: Code in any user-entered shape
+
+    Returns:
+        Canonical form, e.g. "SLICE2-OK" -> "SLIC-E2OK"
+    """
+    cleaned = code.strip().upper().replace("-", "")
+    if len(cleaned) >= 6:
+        mid = len(cleaned) // 2
+        return f"{cleaned[:mid]}-{cleaned[mid:]}"
+    return cleaned
+
+
+async def _find_invite(code: str, db_session) -> InviteCode | None:
+    """
+    Look up an invite by canonical form, with a verbatim fallback.
+
+    Codes created before normalization was applied may be stored in a
+    non-canonical shape (e.g. "SLICE2-OK"); try the raw uppercased form
+    second so those rows remain manageable.
+    """
+    normalized = normalize_code(code)
+    result = await db_session.execute(select(InviteCode).where(InviteCode.code == normalized))
+    invite = result.scalars().first()
+    if invite is None:
+        raw = code.strip().upper()
+        if raw != normalized:
+            result = await db_session.execute(select(InviteCode).where(InviteCode.code == raw))
+            invite = result.scalars().first()
+    return invite
+
+
 def create_invite_code(
     created_by: str,
     role: str = "advocate",
@@ -70,7 +111,9 @@ def create_invite_code(
     Returns:
         Created InviteCode object (not yet committed)
     """
-    code = custom_code.upper() if custom_code else generate_code()
+    code = normalize_code(custom_code) if custom_code else ""
+    if not code:
+        code = generate_code()
 
     expires_at = None
     if expires_days:
@@ -102,18 +145,7 @@ async def validate_invite_code(code: str, db_session) -> tuple[bool, str, Invite
     Returns:
         Tuple of (is_valid: bool, message: str, invite_code: InviteCode or None)
     """
-    # Normalize code
-    code = code.upper().strip().replace("-", "")
-
-    # Re-add hyphen format for lookup
-    if len(code) >= 6 and "-" not in code:
-        mid = len(code) // 2
-        formatted_code = f"{code[:mid]}-{code[mid:]}"
-    else:
-        formatted_code = code
-
-    result = await db_session.execute(select(InviteCode).where(InviteCode.code == formatted_code))
-    invite = result.scalars().first()
+    invite = await _find_invite(code, db_session)
 
     if not invite:
         return False, "Invalid invite code", None
@@ -196,8 +228,7 @@ async def deactivate_invite_code(code: str, db_session) -> bool:
     Returns:
         True if deactivated, False if not found
     """
-    result = await db_session.execute(select(InviteCode).where(InviteCode.code == code.upper()))
-    invite = result.scalars().first()
+    invite = await _find_invite(code, db_session)
 
     if not invite:
         return False
@@ -219,8 +250,7 @@ async def get_code_stats(code: str, db_session) -> dict | None:
     Returns:
         Dict with code stats or None if not found
     """
-    result = await db_session.execute(select(InviteCode).where(InviteCode.code == code.upper()))
-    invite = result.scalars().first()
+    invite = await _find_invite(code, db_session)
 
     if not invite:
         return None
