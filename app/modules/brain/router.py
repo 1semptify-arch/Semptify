@@ -14,7 +14,8 @@ from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisco
 from pydantic import BaseModel
 
 from app.core.cookie_auth import verify_user_id
-from app.core.security import is_valid_user_storage
+from app.core.security import auth_gate, is_valid_user_storage
+from app.core.user_context import UserContext
 from app.services.positronic_brain import BrainEvent, EventType, ModuleType, PositronicBrain, get_brain
 
 logger = logging.getLogger(__name__)
@@ -61,7 +62,7 @@ class ThinkRequest(BaseModel):
 
 
 @router.get("/status")
-async def get_brain_status(brain: PositronicBrain = Depends(get_brain)):
+async def get_brain_status(brain: PositronicBrain = Depends(get_brain), user: UserContext = Depends(auth_gate)):
     """
     ○ Get full brain status.
 
@@ -75,7 +76,7 @@ async def get_brain_status(brain: PositronicBrain = Depends(get_brain)):
 
 
 @router.get("/modules")
-async def list_modules(brain: PositronicBrain = Depends(get_brain)):
+async def list_modules(brain: PositronicBrain = Depends(get_brain), user: UserContext = Depends(auth_gate)):
     """
     ○ List all connected modules.
     """
@@ -83,7 +84,11 @@ async def list_modules(brain: PositronicBrain = Depends(get_brain)):
 
 
 @router.get("/state")
-async def get_state(key: str | None = None, brain: PositronicBrain = Depends(get_brain)):
+async def get_state(
+    key: str | None = None,
+    brain: PositronicBrain = Depends(get_brain),
+    user: UserContext = Depends(auth_gate),
+):
     """
     ◆ Get shared state.
 
@@ -96,7 +101,11 @@ async def get_state(key: str | None = None, brain: PositronicBrain = Depends(get
 
 
 @router.put("/state")
-async def update_state(request: StateUpdateRequest, brain: PositronicBrain = Depends(get_brain)):
+async def update_state(
+    request: StateUpdateRequest,
+    brain: PositronicBrain = Depends(get_brain),
+    user: UserContext = Depends(auth_gate),
+):
     """
     ▸ Update shared state.
 
@@ -107,7 +116,11 @@ async def update_state(request: StateUpdateRequest, brain: PositronicBrain = Dep
 
 
 @router.get("/events")
-async def get_recent_events(limit: int = 50, brain: PositronicBrain = Depends(get_brain)):
+async def get_recent_events(
+    limit: int = 50,
+    brain: PositronicBrain = Depends(get_brain),
+    user: UserContext = Depends(auth_gate),
+):
     """
     ● Get recent brain events.
     """
@@ -115,7 +128,11 @@ async def get_recent_events(limit: int = 50, brain: PositronicBrain = Depends(ge
 
 
 @router.post("/events")
-async def emit_event(request: EventRequest, brain: PositronicBrain = Depends(get_brain)):
+async def emit_event(
+    request: EventRequest,
+    brain: PositronicBrain = Depends(get_brain),
+    user: UserContext = Depends(auth_gate),
+):
     """
     ● Emit an event to the brain.
     """
@@ -132,7 +149,11 @@ async def emit_event(request: EventRequest, brain: PositronicBrain = Depends(get
 
 
 @router.post("/workflow")
-async def trigger_workflow(request: WorkflowRequest, brain: PositronicBrain = Depends(get_brain)):
+async def trigger_workflow(
+    request: WorkflowRequest,
+    brain: PositronicBrain = Depends(get_brain),
+    user: UserContext = Depends(auth_gate),
+):
     """
     ◆ Trigger a cross-module workflow.
 
@@ -148,7 +169,7 @@ async def trigger_workflow(request: WorkflowRequest, brain: PositronicBrain = De
 
 
 @router.get("/workflows")
-async def list_workflows(brain: PositronicBrain = Depends(get_brain)):
+async def list_workflows(brain: PositronicBrain = Depends(get_brain), user: UserContext = Depends(auth_gate)):
     """
     ● List active and recent workflows.
     """
@@ -156,7 +177,11 @@ async def list_workflows(brain: PositronicBrain = Depends(get_brain)):
 
 
 @router.get("/workflows/{workflow_id}")
-async def get_workflow(workflow_id: str, brain: PositronicBrain = Depends(get_brain)):
+async def get_workflow(
+    workflow_id: str,
+    brain: PositronicBrain = Depends(get_brain),
+    user: UserContext = Depends(auth_gate),
+):
     """
     ▸ Get workflow status.
     """
@@ -167,7 +192,11 @@ async def get_workflow(workflow_id: str, brain: PositronicBrain = Depends(get_br
 
 
 @router.post("/think")
-async def brain_think(request: ThinkRequest, brain: PositronicBrain = Depends(get_brain)):
+async def brain_think(
+    request: ThinkRequest,
+    brain: PositronicBrain = Depends(get_brain),
+    user: UserContext = Depends(auth_gate),
+):
     """
     ◆ Ask the brain to think and suggest actions.
 
@@ -181,7 +210,7 @@ async def brain_think(request: ThinkRequest, brain: PositronicBrain = Depends(ge
 
 
 @router.post("/sync")
-async def sync_all(brain: PositronicBrain = Depends(get_brain)):
+async def sync_all(brain: PositronicBrain = Depends(get_brain), user: UserContext = Depends(auth_gate)):
     """
     ▸ Force full synchronization of all modules.
     """
