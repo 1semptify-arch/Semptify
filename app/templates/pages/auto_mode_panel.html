@@ -414,22 +414,26 @@ async function saveConfiguration() {
 }
 
 async function resetToDefaults() {
-    if (confirm('Reset all auto mode settings to defaults?')) {
-        const defaults = {
-            auto_generate_timeline: true,
-            auto_generate_calendar: true,
-            auto_identify_complaints: true,
-            auto_assess_rights: true,
-            auto_detect_missteps: true,
-            auto_suggest_tactics: true
-        };
-        
-        document.querySelectorAll('.feature-toggle').forEach(checkbox => {
-            checkbox.checked = defaults[checkbox.dataset.feature];
-        });
-        
-        await saveConfiguration();
-    }
+    const confirmed = await SemptifyFeedback.confirm(
+        'Reset all auto mode settings to defaults?',
+        { title: 'Reset to defaults', confirmLabel: 'Reset' }
+    );
+    if (!confirmed) return;
+
+    const defaults = {
+        auto_generate_timeline: true,
+        auto_generate_calendar: true,
+        auto_identify_complaints: true,
+        auto_assess_rights: true,
+        auto_detect_missteps: true,
+        auto_suggest_tactics: true
+    };
+
+    document.querySelectorAll('.feature-toggle').forEach(checkbox => {
+        checkbox.checked = defaults[checkbox.dataset.feature];
+    });
+
+    await saveConfiguration();
 }
 
 // Update feature count display

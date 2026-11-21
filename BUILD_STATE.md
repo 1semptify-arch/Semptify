@@ -1,3 +1,28 @@
+## Session — 2026-11-21 — SemptifyFeedback.confirm() added; auto_mode_panel native confirm() removed (swe-2, task task-ac26452d)
+
+**Context:** `auto_mode_panel.html` `resetToDefaults()` used the blocking
+native `confirm()` dialog — the last native-confirm callsite on that page.
+SemptifyFeedback (the global toast helper loaded via `base.html`) had no
+confirm component, so removing it required building one.
+
+**Done:**
+- `static/components/feedback.js` — new `SemptifyFeedback.confirm(message,
+  opts)` — Promise-based in-app confirm modal (`se-cf` classes injected
+  alongside the `se-pt` toast styles). `opts`: `title`, `confirmLabel`,
+  `cancelLabel`, `danger` (error-colored confirm + focuses Cancel).
+  `role="dialog"`/`aria-modal`, Escape + backdrop-click cancel, focus
+  restore on close, concurrent calls serialized through a queue. Purely
+  additive — existing `start/done/success/error/info/story` API untouched.
+- `app/templates/pages/auto_mode_panel.html` — `resetToDefaults()` now
+  `await`s `SemptifyFeedback.confirm(...)`; native `confirm()` gone.
+
+**Verified:** `node --check` clean; `py_compile app/main.py` clean; Jinja
+parse clean; live on :8025 — dialog "Reset to defaults" renders
+(role=dialog, Cancel + Reset), Cancel/Escape leave checkboxes untouched,
+Reset restores defaults and runs save; backdrop blocks underlying clicks.
+Note: `/api/auto-mode/*` endpoints not mounted on the verification
+instance — save toast can't fire there (pre-existing, unrelated).
+
 ## Session — 2026-11-19 — /api/dc/intake/* mounts via product_manifest in all deploy modes (swe-2, task task-5f475242)
 
 **Context:** `/api/dc/intake/*` (OCR-first intake confirm loop) 404'd on

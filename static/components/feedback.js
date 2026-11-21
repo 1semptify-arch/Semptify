@@ -28,6 +28,15 @@
             '.btn--loading{position:relative;color:transparent !important;pointer-events:none}',
             '.btn--loading::after{content:"";position:absolute;top:50%;left:50%;width:20px;height:20px;margin-top:-10px;margin-left:-10px;border:2px solid color-mix(in srgb, var(--bg-card), transparent 70%);border-top-color:var(--color-accent, var(--color-info));border-radius:50%;animation:se-pt-loading-spin 1s linear infinite}',
             '@keyframes se-pt-loading-spin{to{transform:rotate(360deg)}}',
+            '.se-cf-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;z-index:10001;background:color-mix(in srgb, var(--color-black), transparent 55%);display:flex;align-items:center;justify-content:center;padding:1rem;animation:se-cf-fade 0.15s ease}',
+            '@keyframes se-cf-fade{from{opacity:0}to{opacity:1}}',
+            '.se-cf{background:var(--color-bg-card,var(--bg-card,#fff));color:var(--color-text-primary,var(--text-primary,inherit));border:1px solid var(--color-border,var(--border-color,#e5e5e5));border-radius:var(--radius-md,8px);box-shadow:0 12px 40px color-mix(in srgb, var(--color-black), transparent 70%);max-width:26rem;width:100%;padding:1.25rem 1.5rem}',
+            '.se-cf-title{font-weight:600;font-size:1rem;margin:0 0 0.5rem}',
+            '.se-cf-msg{font-size:0.9rem;line-height:1.5;margin:0 0 1.25rem;color:var(--color-text-secondary,var(--text-secondary,inherit))}',
+            '.se-cf-actions{display:flex;justify-content:flex-end;gap:0.5rem}',
+            '.se-cf-btn{padding:0.5rem 1rem;border-radius:var(--radius-input,6px);font-size:0.875rem;font-weight:500;cursor:pointer;border:1px solid var(--color-border,var(--border-color,#d5d5d5));background:none;color:inherit;font-family:inherit}',
+            '.se-cf-btn--confirm{background:var(--color-primary);border-color:transparent;color:var(--text-inverse,#fff)}',
+            '.se-cf-btn--danger{background:var(--color-error,var(--color-primary));border-color:transparent;color:var(--text-inverse,#fff)}',
             '@media (max-width:640px){.se-pt-container{bottom:0.75rem;right:0.75rem;left:0.75rem;max-width:none}}',
         ].join('\n');
         document.head.appendChild(style);
@@ -153,6 +162,102 @@
         enqueue('story', title, body, { timeout: 0 });
     }
 
+    // ---- in-app confirm dialog (se-cf) — Promise-based replacement for native confirm() ----
+    var confirmQueue = [];
+    var confirmBackdrop = null;
+    var confirmResolve = null;
+    var confirmPrevFocus = null;
+
+    function confirmKeyHandler(e) {
+        if (e.key === 'Escape') {
+            e.stopPropagation();
+            closeConfirm(false);
+        }
+    }
+
+    function closeConfirm(result) {
+        var backdrop = confirmBackdrop;
+        var resolve = confirmResolve;
+        confirmBackdrop = null;
+        confirmResolve = null;
+        document.removeEventListener('keydown', confirmKeyHandler, true);
+        if (backdrop && backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
+        if (confirmPrevFocus && confirmPrevFocus.focus) {
+            try { confirmPrevFocus.focus(); } catch (e) { /* element may be gone */ }
+        }
+        confirmPrevFocus = null;
+        if (resolve) resolve(result);
+        drainConfirmQueue();
+    }
+
+    function openConfirm(message, opts, resolve) {
+        confirmResolve = resolve;
+        confirmPrevFocus = document.activeElement;
+
+        var backdrop = document.createElement('div');
+        backdrop.className = 'se-cf-backdrop';
+        backdrop.addEventListener('click', function (e) {
+            if (e.target === backdrop) closeConfirm(false);
+        });
+
+        var dialog = document.createElement('div');
+        dialog.className = 'se-cf';
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('aria-labelledby', 'se-cf-title');
+        dialog.setAttribute('aria-describedby', 'se-cf-msg');
+
+        var title = document.createElement('h2');
+        title.className = 'se-cf-title';
+        title.id = 'se-cf-title';
+        title.textContent = opts.title || 'Confirm';
+        dialog.appendChild(title);
+
+        var msg = document.createElement('p');
+        msg.className = 'se-cf-msg';
+        msg.id = 'se-cf-msg';
+        msg.textContent = message;
+        dialog.appendChild(msg);
+
+        var actions = document.createElement('div');
+        actions.className = 'se-cf-actions';
+
+        var cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'se-cf-btn';
+        cancelBtn.textContent = opts.cancelLabel || 'Cancel';
+        cancelBtn.addEventListener('click', function () { closeConfirm(false); });
+        actions.appendChild(cancelBtn);
+
+        var okBtn = document.createElement('button');
+        okBtn.type = 'button';
+        okBtn.className = 'se-cf-btn ' + (opts.danger ? 'se-cf-btn--danger' : 'se-cf-btn--confirm');
+        okBtn.textContent = opts.confirmLabel || 'OK';
+        okBtn.addEventListener('click', function () { closeConfirm(true); });
+        actions.appendChild(okBtn);
+
+        dialog.appendChild(actions);
+        backdrop.appendChild(dialog);
+        document.body.appendChild(backdrop);
+        confirmBackdrop = backdrop;
+
+        document.addEventListener('keydown', confirmKeyHandler, true);
+        (opts.danger ? cancelBtn : okBtn).focus();
+    }
+
+    function drainConfirmQueue() {
+        if (confirmResolve !== null || confirmQueue.length === 0) return;
+        var next = confirmQueue.shift();
+        openConfirm(next.message, next.opts, next.resolve);
+    }
+
+    function confirm(message, opts) {
+        return new Promise(function (resolve) {
+            confirmQueue.push({ message: message, opts: opts || {}, resolve: resolve });
+            drainConfirmQueue();
+        });
+    }
+
     window.SemptifyFeedback = {
         start: start,
         done: done,
@@ -160,5 +265,6 @@
         error:   function (msg, opts) { enqueue('error',   'Error',   msg, opts); },
         info:    function (msg, opts) { enqueue('info',    'Tip',     msg, opts); },
         story:   story,
+        confirm: confirm,
     };
 })();
