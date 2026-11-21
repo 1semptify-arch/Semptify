@@ -4,7 +4,10 @@ Reads/writes ContextFact rows. Facts expire after 7 days by default.
 No hallucination: every fact must have source_url + source_name.
 """
 
-from datetime import timedelta
+import asyncio
+import time
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 
 from sqlalchemy import and_, select
 
@@ -15,6 +18,30 @@ from app.modules.context_engine.models import ContextFact
 from app.modules.context_engine.taxonomy import ALL_SUBJECTS
 
 DEFAULT_TTL_DAYS = 7
+
+# How long the public landing-page fact cache stays fresh.
+# Landing facts are refreshed once a day by the Render cron, so a 30-minute
+# in-process TTL is enough to stop automated health/uptime probes from
+# continuously waking the Neon compute endpoint while still reflecting the
+# daily fact-check update within a reasonable window.
+LANDING_FACTS_CACHE_TTL_SECONDS = 1800
+
+
+@dataclass(frozen=True, slots=True)
+class LandingFact:
+    """Read-only view of a verified landing fact, safe to cache outside a DB session."""
+
+    claim: str
+    citation: str | None
+    source_url: str
+    source_name: str
+    canonical_value: str | None
+    verified_at: datetime
+    expires_at: datetime | None
+
+
+_landing_facts_cache: dict[str, tuple[float, list[LandingFact]]] = {}
+_landing_facts_lock = asyncio.Lock()
 
 
 def _is_expired(fact: ContextFact) -> bool:
@@ -65,28 +92,67 @@ async def get_facts(
 async def get_verified_landing_facts(
     limit: int = 10,
     jurisdiction: str = "MN",
-) -> list[ContextFact]:
+) -> list[LandingFact]:
     """Return verified, non-expired landing/public facts.
 
     This is the canonical source for hero claims on the landing page.
     Unverified, expired, or drifted claims are auto-hidden.
+
+    Results are cached in-process for ``LANDING_FACTS_CACHE_TTL_SECONDS`` so
+    automated health/uptime probes against the public landing page and the
+    ``/api/landing/facts`` endpoint do not keep re-waking the Neon compute
+    endpoint. On a DB failure we fall back to the cached copy if one exists.
     """
-    async with get_db_session() as db:
-        stmt = (
-            select(ContextFact)
-            .where(
-                and_(
-                    ContextFact.subject == "landing",
-                    ContextFact.jurisdiction == jurisdiction,
-                    ContextFact.is_verified.is_(True),
+    now = time.monotonic()
+    async with _landing_facts_lock:
+        cached = _landing_facts_cache.get(jurisdiction)
+        if cached is not None:
+            fetched_at, facts = cached
+            if (now - fetched_at) < LANDING_FACTS_CACHE_TTL_SECONDS:
+                return list(facts)
+
+    fresh_facts: list[LandingFact] = []
+    try:
+        async with get_db_session() as db:
+            stmt = (
+                select(ContextFact)
+                .where(
+                    and_(
+                        ContextFact.subject == "landing",
+                        ContextFact.jurisdiction == jurisdiction,
+                        ContextFact.is_verified.is_(True),
+                    )
                 )
+                .order_by(ContextFact.created_at.desc())
+                .limit(limit)
             )
-            .order_by(ContextFact.created_at.desc())
-            .limit(limit)
-        )
-        result = await db.execute(stmt)
-        rows = result.scalars().all()
-        return [r for r in rows if not _is_expired(r)]
+            result = await db.execute(stmt)
+            rows = result.scalars().all()
+            for r in rows:
+                if _is_expired(r):
+                    continue
+                fresh_facts.append(
+                    LandingFact(
+                        claim=r.claim,
+                        citation=r.citation,
+                        source_url=r.source_url,
+                        source_name=r.source_name,
+                        canonical_value=r.canonical_value,
+                        verified_at=r.verified_at,
+                        expires_at=r.expires_at,
+                    )
+                )
+    except Exception:
+        async with _landing_facts_lock:
+            cached = _landing_facts_cache.get(jurisdiction)
+            if cached is not None:
+                return list(cached[1])
+        return []
+
+    async with _landing_facts_lock:
+        _landing_facts_cache[jurisdiction] = (time.monotonic(), fresh_facts)
+
+    return list(fresh_facts)
 
 
 async def upsert_fact(
