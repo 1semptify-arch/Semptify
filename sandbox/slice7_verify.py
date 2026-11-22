@@ -106,7 +106,9 @@ def call(method, path, uid=None, body=None, headers=None):
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return None
+        # Returning None is the urllib contract for "do not follow this redirect".
+        result = None
+        return result
 
 
 _NOFOLLOW = urllib.request.build_opener(_NoRedirect)
