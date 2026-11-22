@@ -367,7 +367,7 @@ async function uploadToVault(fileCount, skipDetails = false) {
   }
 
   if (authRedirectUrl) {
-    if (confirm("We're reconnecting you to your storage. Your documents are safe. Continue?")) {
+    if (await SemptifyFeedback.confirm("We're reconnecting you to your storage. Your documents are safe. Continue?", { title: 'Reconnect storage', confirmLabel: 'Continue' })) {
       window.location.href = authRedirectUrl;
       return;
     }

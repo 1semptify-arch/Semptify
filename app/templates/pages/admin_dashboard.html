@@ -680,11 +680,11 @@
 
     // Reset user gates
     async function resetUserGates(userId) {
-      const gates = prompt(
+      const gates = await SemptifyFeedback.prompt(
         `Reset gates for user ${userId}?\n\n` +
         `Enter gates to reset (comma-separated):\n` +
         `Options: storage_connected, vault_initialized`,
-        'storage_connected,vault_initialized'
+        { title: 'Reset user gates', defaultValue: 'storage_connected,vault_initialized' }
       );
       
       if (!gates) return;

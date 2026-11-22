@@ -1,6 +1,7 @@
 /* SemptifyFeedback — Unified Action Feedback Helper (standalone JS)
    Load via: <script src="/static/components/feedback.js"></script>
-   Provides: start(), done(), success(), error(), info(), story()
+   Provides: start(), done(), success(), error(), info(), story(),
+             confirm(), prompt()
    Reuses .btn--loading class from loading-overlay.html
 */
 (function () {
@@ -37,6 +38,8 @@
             '.se-cf-btn{padding:0.5rem 1rem;border-radius:var(--radius-input,6px);font-size:0.875rem;font-weight:500;cursor:pointer;border:1px solid var(--color-border,var(--border-color,#d5d5d5));background:none;color:inherit;font-family:inherit}',
             '.se-cf-btn--confirm{background:var(--color-primary);border-color:transparent;color:var(--text-inverse,#fff)}',
             '.se-cf-btn--danger{background:var(--color-error,var(--color-primary));border-color:transparent;color:var(--text-inverse,#fff)}',
+            '.se-cf-input{display:block;width:100%;box-sizing:border-box;margin:0 0 1.25rem;padding:0.5rem 0.75rem;font-size:0.875rem;font-family:inherit;color:inherit;background:var(--color-bg,var(--bg-card,#fff));border:1px solid var(--color-border,var(--border-color,#d5d5d5));border-radius:var(--radius-input,6px)}',
+            '.se-cf-input:focus{outline:2px solid var(--color-primary,var(--color-info));outline-offset:1px}',
             '@media (max-width:640px){.se-pt-container{bottom:0.75rem;right:0.75rem;left:0.75rem;max-width:none}}',
         ].join('\n');
         document.head.appendChild(style);
@@ -162,11 +165,12 @@
         enqueue('story', title, body, { timeout: 0 });
     }
 
-    // ---- in-app confirm dialog (se-cf) — Promise-based replacement for native confirm() ----
+    // ---- in-app dialogs (se-cf) — Promise-based replacements for native confirm()/prompt() ----
     var confirmQueue = [];
     var confirmBackdrop = null;
     var confirmResolve = null;
     var confirmPrevFocus = null;
+    var confirmInput = null;
 
     function confirmKeyHandler(e) {
         if (e.key === 'Escape') {
@@ -178,20 +182,23 @@
     function closeConfirm(result) {
         var backdrop = confirmBackdrop;
         var resolve = confirmResolve;
+        var input = confirmInput;
         confirmBackdrop = null;
         confirmResolve = null;
+        confirmInput = null;
         document.removeEventListener('keydown', confirmKeyHandler, true);
         if (backdrop && backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
         if (confirmPrevFocus && confirmPrevFocus.focus) {
             try { confirmPrevFocus.focus(); } catch (e) { /* element may be gone */ }
         }
         confirmPrevFocus = null;
-        if (resolve) resolve(result);
+        if (resolve) resolve(input ? (result ? input.value : null) : result);
         drainConfirmQueue();
     }
 
-    function openConfirm(message, opts, resolve) {
-        confirmResolve = resolve;
+    function openConfirm(item) {
+        var opts = item.opts;
+        confirmResolve = item.resolve;
         confirmPrevFocus = document.activeElement;
 
         var backdrop = document.createElement('div');
@@ -210,14 +217,31 @@
         var title = document.createElement('h2');
         title.className = 'se-cf-title';
         title.id = 'se-cf-title';
-        title.textContent = opts.title || 'Confirm';
+        title.textContent = opts.title || (item.isPrompt ? 'Input' : 'Confirm');
         dialog.appendChild(title);
 
         var msg = document.createElement('p');
         msg.className = 'se-cf-msg';
         msg.id = 'se-cf-msg';
-        msg.textContent = message;
+        msg.textContent = item.message;
         dialog.appendChild(msg);
+
+        var input = null;
+        if (item.isPrompt) {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'se-cf-input';
+            input.value = opts.defaultValue != null ? opts.defaultValue : '';
+            if (opts.placeholder) input.placeholder = opts.placeholder;
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    closeConfirm(true);
+                }
+            });
+            dialog.appendChild(input);
+            confirmInput = input;
+        }
 
         var actions = document.createElement('div');
         actions.className = 'se-cf-actions';
@@ -242,18 +266,35 @@
         confirmBackdrop = backdrop;
 
         document.addEventListener('keydown', confirmKeyHandler, true);
-        (opts.danger ? cancelBtn : okBtn).focus();
+        if (input) {
+            input.focus();
+            input.select();
+        } else {
+            (opts.danger ? cancelBtn : okBtn).focus();
+        }
     }
 
     function drainConfirmQueue() {
         if (confirmResolve !== null || confirmQueue.length === 0) return;
-        var next = confirmQueue.shift();
-        openConfirm(next.message, next.opts, next.resolve);
+        openConfirm(confirmQueue.shift());
     }
 
     function confirm(message, opts) {
         return new Promise(function (resolve) {
-            confirmQueue.push({ message: message, opts: opts || {}, resolve: resolve });
+            confirmQueue.push({ message: message, opts: opts || {}, resolve: resolve, isPrompt: false });
+            drainConfirmQueue();
+        });
+    }
+
+    // Promise-based replacement for native prompt() — resolves the entered
+    // string (possibly ''), or null on Cancel/Escape/backdrop click.
+    // Second arg may be an opts object { title, defaultValue, placeholder,
+    // confirmLabel, cancelLabel } or a plain string defaultValue for
+    // drop-in replacement of prompt(message, defaultValue).
+    function prompt(message, opts) {
+        if (typeof opts === 'string') opts = { defaultValue: opts };
+        return new Promise(function (resolve) {
+            confirmQueue.push({ message: message, opts: opts || {}, resolve: resolve, isPrompt: true });
             drainConfirmQueue();
         });
     }
@@ -266,5 +307,6 @@
         info:    function (msg, opts) { enqueue('info',    'Tip',     msg, opts); },
         story:   story,
         confirm: confirm,
+        prompt:  prompt,
     };
 })();

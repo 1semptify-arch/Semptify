@@ -17634,3 +17634,28 @@ sessions); embedded images are dropped from edited exports (noted to user).
 - **Intake:** `intake-370dde1d` — brain REST endpoints also have zero
   auth_gate (medium, dormant); `intake-00b783ad` — `TestWebSocketEvents`
   tests stale, unsigned cookies vs `verify_user_id` (low, pre-existing).
+
+## 2026-11-22 — native dialogs sweep pt 2: SemptifyFeedback.prompt + shared-JS confirm conversions (task-5745e440, swe-2)
+
+- **Added `SemptifyFeedback.prompt(message, opts|defaultValue)`** to
+  `static/components/feedback.js` — Promise resolving to the entered
+  string or `null` on cancel, reusing the same se-cf dialog machinery as
+  `.confirm()` (queue-serialized, Esc/backdrop/Cancel → null, Enter
+  submits, input focused with default selected). Second arg may be an
+  opts object `{ title, defaultValue, placeholder, confirmLabel,
+  cancelLabel }` or a plain string for drop-in `prompt(msg, default)`.
+- **Converted the last 2 native `confirm()` calls in shared static JS:**
+  `static/js/core/app.js` (storage reconnect gate) and
+  `static/js/core/vault-portal.js` (vault reconnect gate) →
+  `await SemptifyFeedback.confirm`.
+- **Converted the 2 named `prompt()` sites:** `admin_dashboard.html`
+  `resetUserGates` (gate list entry) and `admin_dev_lab.html`
+  `promoteIdea` (module name entry) → `await SemptifyFeedback.prompt`
+  with native default values preserved.
+- **Verified:** `node --check` on all three JS files plus extracted
+  script blocks of both templates (clean); DOM-stub run of feedback.js
+  exercised confirm true/false, prompt value/null, string-default, and
+  queue serialization — all pass.
+- **Intake:** `intake-6fc5e88a` — 4 `alert()` calls remain in
+  vault-portal.js (low); `intake-84bca1e4` — 3 `prompt()` sites remain in
+  office_inbox/advocate_client_detail/office_signer (low).
