@@ -18,7 +18,7 @@ import contextlib
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile
 from pydantic import BaseModel
 
-from app.core.security import UserContext, green_access
+from app.core.security import UserContext, green_access, require_admin
 from app.core.utc import utc_now
 from app.services.document_registry import (
     CustodyAction,
@@ -145,9 +145,9 @@ class RegistryStatsResponse(BaseModel):
 async def register_document(
     request: Request,
     file: UploadFile = File(...),
-    user_id: str = Form(..., description="User ID"),
     case_number: str | None = Form(None, description="Case number to associate"),
     intake_document_id: str | None = Form(None, description="Linked intake document ID"),
+    user: UserContext = Depends(green_access),
 ):
     """
     Register a new document in the system.
@@ -176,7 +176,7 @@ async def register_document(
 
     # Register the document
     doc = registry.register_document(
-        user_id=user_id,
+        user_id=user.user_id,
         content=content,
         filename=file.filename or "unknown",
         mime_type=file.content_type or "application/octet-stream",
@@ -398,6 +398,7 @@ async def get_custody_chain(doc_id: str, user: UserContext = Depends(green_acces
 async def verify_document(
     doc_id: str,
     file: UploadFile = File(..., description="File to verify against stored hash"),
+    user: UserContext = Depends(green_access),
 ):
     """
     Verify a document hasn't been tampered with.
@@ -410,6 +411,10 @@ async def verify_document(
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
+
+    # SECURITY: Verify user owns this document
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
 
     content = await file.read()
     status = registry.verify_integrity(doc_id, content)
@@ -434,7 +439,7 @@ async def verify_document(
 
 
 @router.get("/documents/{doc_id}/verify")
-async def get_integrity_status(doc_id: str):
+async def get_integrity_status(doc_id: str, user: UserContext = Depends(green_access)):
     """
     Get the current integrity status of a document.
 
@@ -446,6 +451,10 @@ async def get_integrity_status(doc_id: str):
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
+
+    # SECURITY: Verify user owns this document
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
 
     messages = {
         IntegrityStatus.VERIFIED: "✅ Document integrity verified - no tampering detected",
@@ -466,13 +475,17 @@ async def get_integrity_status(doc_id: str):
 
 
 @router.get("/documents/{doc_id}/hash")
-async def get_document_hash(doc_id: str):
+async def get_document_hash(doc_id: str, user: UserContext = Depends(green_access)):
     """Get the stored hashes for a document (for external verification)."""
     registry = get_document_registry()
 
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
+
+    # SECURITY: Verify user owns this document
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
 
     return {
         "document_id": doc.document_id,
@@ -494,26 +507,28 @@ async def flag_document(
     doc_id: str,
     flag_request: FlagDocumentRequest,
     request: Request,
+    user: UserContext = Depends(green_access),
 ):
-    """Flag a document for review (suspected forgery, alteration, etc.)."""
+    """Flag a document for review (suspected forgery, alteration, etc.). User must own the document."""
     registry = get_document_registry()
 
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
 
+    # SECURITY: Verify user owns this document
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
+
     indicator = ForgeryIndicator.NONE
     if flag_request.indicator:
         with contextlib.suppress(ValueError):
             indicator = ForgeryIndicator(flag_request.indicator)
 
-    ip_address = request.client.host if request.client else None
-    actor = f"api_user@{ip_address}" if ip_address else "api_user"
-
     success = registry.flag_document(
         doc_id=doc_id,
         reason=flag_request.reason,
-        actor=actor,
+        actor=user.user_id,
         indicator=indicator,
     )
 
@@ -533,21 +548,23 @@ async def associate_case(
     doc_id: str,
     case_request: AssociateCaseRequest,
     request: Request,
+    user: UserContext = Depends(green_access),
 ):
-    """Associate a document with a case number."""
+    """Associate a document with a case number. User must own the document."""
     registry = get_document_registry()
 
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
 
-    ip_address = request.client.host if request.client else None
-    actor = f"api_user@{ip_address}" if ip_address else "api_user"
+    # SECURITY: Verify user owns this document
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
 
     success = registry.associate_case(
         doc_id=doc_id,
         case_number=case_request.case_number,
-        actor=actor,
+        actor=user.user_id,
     )
 
     if not success:
@@ -566,16 +583,16 @@ async def associate_case(
 
 
 @router.get("/flagged", response_model=list[RegisteredDocumentResponse])
-async def get_flagged_documents():
-    """Get all documents flagged for review."""
+async def get_flagged_documents(admin: dict = Depends(require_admin)):
+    """Get all documents flagged for review. Admin only."""
     registry = get_document_registry()
     docs = registry.get_flagged_documents()
     return [_doc_to_response(d) for d in docs]
 
 
 @router.get("/quarantined")
-async def get_quarantined_documents():
-    """Get all quarantined documents (high forgery risk)."""
+async def get_quarantined_documents(admin: dict = Depends(require_admin)):
+    """Get all quarantined documents (high forgery risk). Admin only."""
     registry = get_document_registry()
     docs = [d for d in registry._documents.values() if d.status == DocumentStatus.QUARANTINED]
     return {
@@ -590,33 +607,33 @@ async def get_quarantined_documents():
 
 
 @router.get("/stats", response_model=RegistryStatsResponse)
-async def get_registry_stats():
-    """Get registry statistics."""
+async def get_registry_stats(admin: dict = Depends(require_admin)):
+    """Get registry statistics. Admin only."""
     registry = get_document_registry()
     stats = registry.get_statistics()
     return RegistryStatsResponse(**stats)
 
 
 @router.get("/enums/statuses")
-async def get_document_statuses():
+async def get_document_statuses(user: UserContext = Depends(green_access)):
     """Get all document statuses."""
     return [{"value": s.value, "name": s.name} for s in DocumentStatus]
 
 
 @router.get("/enums/integrity-statuses")
-async def get_integrity_statuses():
+async def get_integrity_statuses(user: UserContext = Depends(green_access)):
     """Get all integrity statuses."""
     return [{"value": s.value, "name": s.name} for s in IntegrityStatus]
 
 
 @router.get("/enums/forgery-indicators")
-async def get_forgery_indicators():
+async def get_forgery_indicators(user: UserContext = Depends(green_access)):
     """Get all forgery indicators."""
     return [{"value": i.value, "name": i.name} for i in ForgeryIndicator]
 
 
 @router.get("/enums/custody-actions")
-async def get_custody_actions():
+async def get_custody_actions(user: UserContext = Depends(green_access)):
     """Get all custody actions."""
     return [{"value": a.value, "name": a.name} for a in CustodyAction]
 
@@ -627,30 +644,35 @@ async def get_custody_actions():
 
 
 @router.get("/cases/{case_number}/documents", response_model=list[RegisteredDocumentResponse])
-async def get_case_documents(case_number: str):
-    """Get all documents for a specific case."""
+async def get_case_documents(case_number: str, user: UserContext = Depends(green_access)):
+    """Get the current user's documents for a specific case."""
     registry = get_document_registry()
     docs = registry.get_documents_by_case(case_number)
 
-    if not docs:
-        return []
+    # SECURITY: Never return other tenants' documents
+    docs = [d for d in docs if d.user_id == user.user_id]
 
     return [_doc_to_response(d) for d in docs]
 
 
 @router.get("/cases")
-async def list_cases():
-    """List all cases with document counts."""
+async def list_cases(user: UserContext = Depends(green_access)):
+    """List the current user's cases with document counts."""
     registry = get_document_registry()
+
+    user_doc_ids = {d.document_id for d in registry.get_documents_by_user(user.user_id)}
 
     cases = []
     for case_number, doc_ids in registry._case_index.items():
-        docs = [registry._documents.get(did) for did in doc_ids if did in registry._documents]
-        flagged = sum(1 for d in docs if d and d.requires_review)
+        owned_ids = [did for did in doc_ids if did in user_doc_ids]
+        if not owned_ids:
+            continue
+        docs = [registry._documents[did] for did in owned_ids]
+        flagged = sum(1 for d in docs if d.requires_review)
         cases.append(
             {
                 "case_number": case_number,
-                "document_count": len(doc_ids),
+                "document_count": len(owned_ids),
                 "flagged_count": flagged,
             }
         )

@@ -83,6 +83,28 @@ def sample_image_content():
     return b"\x89PNG\r\n\x1a\n Sample image content for testing."
 
 
+# Two tenants with valid-format user IDs: <provider><role><8 chars>
+TENANT_A_ID = "GUa1b2c3d4"
+TENANT_B_ID = "DUe5f6g7h8"
+
+
+def _auth(user_id: str) -> dict:
+    """Signed semptify_uid cookie for the given user id."""
+    from app.core.cookie_auth import sign_user_id
+
+    return {"semptify_uid": sign_user_id(user_id)}
+
+
+@pytest.fixture
+def tenant_a_cookies():
+    return _auth(TENANT_A_ID)
+
+
+@pytest.fixture
+def tenant_b_cookies():
+    return _auth(TENANT_B_ID)
+
+
 # =============================================================================
 # Hash Generator Tests
 # =============================================================================
@@ -713,71 +735,77 @@ class TestRegistryStatistics:
 class TestRegistryAPIEndpoints:
     """Tests for Document Registry API endpoints."""
 
-    def test_register_document_endpoint(self, client):
+    def test_register_document_endpoint(self, client, tenant_a_cookies):
         """POST /api/registry/register should register a document."""
         files = {"file": ("test.pdf", b"Test PDF content", "application/pdf")}
-        data = {"user_id": "user_123"}
 
-        response = client.post("/api/registry/register", files=files, data=data)
+        response = client.post("/api/registry/register", files=files, cookies=tenant_a_cookies)
 
         assert response.status_code == 200
         result = response.json()
         assert "document_id" in result
         assert result["document_id"].startswith("SEM-")
 
-    def test_register_with_case_number_endpoint(self, client):
+    def test_register_document_requires_auth(self, client):
+        """POST /api/registry/register without a session should be rejected."""
+        files = {"file": ("test.pdf", b"Test PDF content", "application/pdf")}
+
+        response = client.post("/api/registry/register", files=files)
+
+        assert response.status_code == 401
+
+    def test_register_with_case_number_endpoint(self, client, tenant_a_cookies):
         """Registration should accept case number."""
         files = {"file": ("test.pdf", b"Test PDF content", "application/pdf")}
-        data = {"user_id": "user_123", "case_number": "19HA-CV-24-12345"}
+        data = {"case_number": "19HA-CV-24-12345"}
 
-        response = client.post("/api/registry/register", files=files, data=data)
+        response = client.post("/api/registry/register", files=files, data=data, cookies=tenant_a_cookies)
 
         assert response.status_code == 200
         result = response.json()
         assert "document_id" in result
 
-    def test_verify_document_endpoint(self, client):
+    def test_verify_document_endpoint(self, client, tenant_a_cookies):
         """POST /api/registry/documents/{doc_id}/verify should verify integrity."""
         # First register a document
         files = {"file": ("test.pdf", b"Original content", "application/pdf")}
-        data = {"user_id": "user_123"}
-        register_response = client.post("/api/registry/register", files=files, data=data)
+        register_response = client.post("/api/registry/register", files=files, cookies=tenant_a_cookies)
         doc_id = register_response.json()["document_id"]
 
         # Verify with same content
         verify_files = {"file": ("test.pdf", b"Original content", "application/pdf")}
-        response = client.post(f"/api/registry/documents/{doc_id}/verify", files=verify_files)
+        response = client.post(
+            f"/api/registry/documents/{doc_id}/verify", files=verify_files, cookies=tenant_a_cookies
+        )
 
         assert response.status_code == 200
         result = response.json()
         assert "status" in result
 
-    def test_get_document_endpoint(self, client):
+    def test_get_document_endpoint(self, client, tenant_a_cookies):
         """GET /api/registry/documents/{doc_id} should return document info."""
         # Register a document first
         files = {"file": ("test.pdf", b"Test content", "application/pdf")}
-        data = {"user_id": "user_123"}
-        register_response = client.post("/api/registry/register", files=files, data=data)
+        register_response = client.post("/api/registry/register", files=files, cookies=tenant_a_cookies)
         doc_id = register_response.json()["document_id"]
 
         # Get document
-        response = client.get(f"/api/registry/documents/{doc_id}")
+        response = client.get(f"/api/registry/documents/{doc_id}", cookies=tenant_a_cookies)
 
         assert response.status_code in [200, 401]
         if response.status_code == 200:
             result = response.json()
             assert result["document_id"] == doc_id
 
-    def test_get_custody_chain_endpoint(self, client):
+    def test_get_custody_chain_endpoint(self, client, tenant_a_cookies):
         """GET /api/registry/documents/{doc_id}/custody should return custody chain."""
         # Register a document
         files = {"file": ("test.pdf", b"Test content for custody", "application/pdf")}
-        data = {"user_id": "user_123"}
-        register_response = client.post("/api/registry/register", files=files, data=data)
+        register_response = client.post("/api/registry/register", files=files, cookies=tenant_a_cookies)
         doc_id = register_response.json()["document_id"]
 
         # Get custody chain
-        response = client.get(f"/api/registry/documents/{doc_id}/custody")
+        response = client.get(f"/api/registry/documents/{doc_id}/custody", cookies=tenant_a_cookies)
 
         assert response.status_code in [200, 401]
         if response.status_code == 200:
@@ -785,27 +813,127 @@ class TestRegistryAPIEndpoints:
             assert isinstance(result, list)
             assert len(result) >= 1
 
-    def test_flag_document_endpoint(self, client):
+    def test_flag_document_endpoint(self, client, tenant_a_cookies):
         """POST /api/registry/documents/{doc_id}/flag should flag for review."""
         # Register a document
         files = {"file": ("test.pdf", b"Test content for flagging", "application/pdf")}
-        data = {"user_id": "user_123"}
-        register_response = client.post("/api/registry/register", files=files, data=data)
+        register_response = client.post("/api/registry/register", files=files, cookies=tenant_a_cookies)
         doc_id = register_response.json()["document_id"]
 
         # Flag for review
         flag_data = {"reason": "Suspicious metadata"}
-        response = client.post(f"/api/registry/documents/{doc_id}/flag", json=flag_data)
+        response = client.post(
+            f"/api/registry/documents/{doc_id}/flag", json=flag_data, cookies=tenant_a_cookies
+        )
 
         assert response.status_code == 200
 
-    def test_get_stats_endpoint(self, client):
-        """GET /api/registry/stats should return statistics."""
+    def test_get_stats_endpoint(self, client, monkeypatch):
+        """GET /api/registry/stats requires admin auth."""
         response = client.get("/api/registry/stats")
+        assert response.status_code == 401
 
+        monkeypatch.setenv("ADMIN_TOKEN", "test-admin-token")
+        response = client.get(
+            "/api/registry/stats",
+            headers={"Authorization": "Bearer test-admin-token"},
+        )
         assert response.status_code == 200
         result = response.json()
         assert "total_documents" in result
+
+
+# =============================================================================
+# Tenant Isolation Tests
+# =============================================================================
+
+
+class TestTenantIsolation:
+    """Tenant B must not read or mutate tenant A's registry data.
+
+    Each tenant gets its own TestClient: the app sets per-user cookies
+    (e.g. semptify_idle) and a shared jar would mix identities.
+    """
+
+    @pytest.fixture
+    def client_a(self, app):
+        c = TestClient(app)
+        c.cookies.update(_auth(TENANT_A_ID))
+        return c
+
+    @pytest.fixture
+    def client_b(self, app):
+        c = TestClient(app)
+        c.cookies.update(_auth(TENANT_B_ID))
+        return c
+
+    @pytest.fixture
+    def tenant_a_doc(self, client_a):
+        """Register a document as tenant A and return its document_id."""
+        files = {"file": ("lease.pdf", b"Tenant A lease", "application/pdf")}
+        data = {"case_number": "27-CV-24-1234"}
+        response = client_a.post("/api/registry/register", files=files, data=data)
+        assert response.status_code == 200
+        return response.json()["document_id"]
+
+    def test_register_ignores_spoofed_user_id(self, client_b):
+        """A user_id form field must not let B plant a document in A's name."""
+        files = {"file": ("fake.pdf", b"forged", "application/pdf")}
+        data = {"user_id": TENANT_A_ID}
+        response = client_b.post("/api/registry/register", files=files, data=data)
+        assert response.status_code == 200
+        doc_id = response.json()["document_id"]
+        doc = client_b.get(f"/api/registry/documents/{doc_id}").json()
+        assert doc["user_id"] == TENANT_B_ID
+
+    def test_cannot_read_other_tenant_document(self, client_b, tenant_a_doc):
+        response = client_b.get(f"/api/registry/documents/{tenant_a_doc}")
+        assert response.status_code == 403
+
+    def test_cannot_flag_other_tenant_document(self, client_b, tenant_a_doc):
+        response = client_b.post(
+            f"/api/registry/documents/{tenant_a_doc}/flag",
+            json={"reason": "forged"},
+        )
+        assert response.status_code == 403
+
+    def test_cannot_relink_other_tenant_document(self, client_b, tenant_a_doc):
+        response = client_b.post(
+            f"/api/registry/documents/{tenant_a_doc}/case",
+            json={"case_number": "99-EV-99-9999"},
+        )
+        assert response.status_code == 403
+
+    def test_cannot_verify_or_hash_other_tenant_document(self, client_b, tenant_a_doc):
+        files = {"file": ("lease.pdf", b"Tenant A lease", "application/pdf")}
+        assert client_b.post(f"/api/registry/documents/{tenant_a_doc}/verify", files=files).status_code == 403
+        assert client_b.get(f"/api/registry/documents/{tenant_a_doc}/verify").status_code == 403
+        assert client_b.get(f"/api/registry/documents/{tenant_a_doc}/hash").status_code == 403
+
+    def test_case_routes_hide_other_tenant_data(self, client_b, tenant_a_doc):
+        docs = client_b.get("/api/registry/cases/27-CV-24-1234/documents")
+        assert docs.status_code == 200
+        assert docs.json() == []
+
+        cases = client_b.get("/api/registry/cases")
+        assert cases.status_code == 200
+        case_numbers = [c["case_number"] for c in cases.json()["cases"]]
+        assert "27-CV-24-1234" not in case_numbers
+
+    def test_case_routes_show_own_data(self, client_a, tenant_a_doc):
+        docs = client_a.get("/api/registry/cases/27-CV-24-1234/documents")
+        assert docs.status_code == 200
+        assert tenant_a_doc in [d["document_id"] for d in docs.json()]
+
+        cases = client_a.get("/api/registry/cases")
+        assert cases.status_code == 200
+        case_numbers = [c["case_number"] for c in cases.json()["cases"]]
+        assert "27-CV-24-1234" in case_numbers
+
+    def test_global_review_routes_require_admin(self, client_a):
+        assert client_a.get("/api/registry/flagged").status_code == 401
+        assert client_a.get("/api/registry/quarantined").status_code == 401
+        assert client_a.get("/api/registry/stats").status_code == 401
 
 
 # =============================================================================
@@ -816,12 +944,11 @@ class TestRegistryAPIEndpoints:
 class TestEdgeCases:
     """Tests for edge cases and error handling."""
 
-    def test_register_empty_file_rejected(self, client):
+    def test_register_empty_file_rejected(self, client, tenant_a_cookies):
         """Should reject empty file registration."""
         files = {"file": ("empty.pdf", b"", "application/pdf")}
-        data = {"user_id": "user_123"}
 
-        response = client.post("/api/registry/register", files=files, data=data)
+        response = client.post("/api/registry/register", files=files, cookies=tenant_a_cookies)
 
         assert response.status_code == 400
 
