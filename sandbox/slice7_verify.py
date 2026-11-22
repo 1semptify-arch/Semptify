@@ -105,6 +105,7 @@ def call(method, path, uid=None, body=None, headers=None):
 
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    # stub-detector: ignore — returning None is the correct "do not follow" override
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         return None
 
