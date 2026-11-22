@@ -724,24 +724,34 @@ async def save_converted_document(data: ConvertedDocumentSave):
         if data.folder_id not in briefcase_data["folders"]:
             data.folder_id = "converted"  # Fallback to converted folder
 
-        # Try to read the file from the conversion output path
-        file_content = None
+        # Reject path separators in filename — it is a name, not a path
+        if Path(data.filename).name != data.filename:
+            raise HTTPException(status_code=400, detail="Invalid filename")
 
-        # Check various possible paths where the converted file might be
-        clean_path = data.file_url.lstrip("/")
-        possible_paths = [
-            Path(clean_path),
-            Path(f"data/documents/{data.filename}"),
-            Path(f"data/{data.filename}"),
-            # Also check the convert output directory
-            Path(f"data/documents/converted/{data.filename}"),
+        # Directories a converted file may legitimately live in
+        allowed_dirs = [
+            Path("data/converted_documents").resolve(),
+            Path("data/documents/converted").resolve(),
+            Path("data/documents").resolve(),
         ]
 
-        for path in possible_paths:
-            if path.exists():
-                with open(path, "rb") as f:
-                    file_content = f.read()
-                logger.info("Found converted file at: %s", path)
+        # file_url may be a URL (e.g. /api/document-converter/download/x.docx)
+        # or a relative path — only its basename is trusted.
+        candidate_names = {data.filename, Path(data.file_url).name}
+        candidate_names.discard("")
+
+        file_content = None
+        for name in candidate_names:
+            for base_dir in allowed_dirs:
+                resolved = (base_dir / name).resolve()
+                if not resolved.is_relative_to(base_dir):
+                    continue
+                if resolved.is_file():
+                    with open(resolved, "rb") as f:
+                        file_content = f.read()
+                    logger.info("Found converted file at: %s", resolved)
+                    break
+            if file_content is not None:
                 break
 
         if not file_content:
