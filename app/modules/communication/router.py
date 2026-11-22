@@ -105,7 +105,6 @@ async def get_conversations(
 @router.post("/conversations", response_model=CreateConversationResponse)
 async def create_conversation(
     request: CreateConversationRequest,
-    access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -172,7 +171,6 @@ async def send_message(
     referenced_document_id: str | None = Form(None, description="Referenced document ID"),
     referenced_delivery_id: str | None = Form(None, description="Referenced delivery ID"),
     reply_to_message_id: str | None = Form(None, description="Reply to message ID"),
-    access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -212,7 +210,6 @@ async def send_message(
 async def mark_message_read(
     conversation_id: str,
     message_id: str,
-    access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -229,7 +226,6 @@ async def mark_message_read(
 @router.post("/conversations/{conversation_id}/read-all")
 async def mark_conversation_read(
     conversation_id: str,
-    access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -252,7 +248,6 @@ async def mark_conversation_read(
 async def reject_document(
     delivery_id: str,
     reason: str = Form(..., description="Reason for rejecting the document"),
-    access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -309,7 +304,6 @@ async def fill_and_sign_document(
     field_1: str | None = Form(None, description="Form field 1"),
     field_2: str | None = Form(None, description="Form field 2"),
     field_3: str | None = Form(None, description="Form field 3"),
-    access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -357,7 +351,7 @@ async def fill_and_sign_document(
 async def upload_attachment(
     conversation_id: str,
     file: UploadFile = File(..., description="File to attach"),
-    access_token: str = Form(..., description="Storage provider access token"),
+    access_token: str | None = Form(None, description="Storage provider access token (resolved from session when omitted)"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -376,6 +370,15 @@ async def upload_attachment(
 
         # Upload to storage
         storage = await get_storage_client(user, db, settings)
+
+        # Resolve token from session when the client didn't supply one
+        if not access_token:
+            from app.modules.storage.router import get_valid_session
+
+            session = await get_valid_session(db, user.user_id)
+            if session:
+                access_token = session.get("access_token")
+
         from app.services.vault_upload_service import VaultUploadService
 
         upload_service = VaultUploadService(storage)
