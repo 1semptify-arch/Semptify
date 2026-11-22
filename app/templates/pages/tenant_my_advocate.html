@@ -510,7 +510,7 @@ async function loadAdvocates() {
 document.addEventListener('click', async e => {
     const btn = e.target.closest('[data-revoke]');
     if (!btn) return;
-    if (!confirm('Remove their access? It takes effect immediately.')) return;
+    if (!await SemptifyFeedback.confirm('Remove their access? It takes effect immediately.', { title: 'Remove access', confirmLabel: 'Remove access', danger: true })) return;
     const { ok, data } = await fetchJSON(
         `/api/advocate/my-advocates/${encodeURIComponent(btn.getAttribute('data-revoke'))}`,
         { method: 'DELETE' }

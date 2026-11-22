@@ -73,8 +73,8 @@
 
 {% block scripts %}
 <script>
-  function removeDoc(index) {
-    if (confirm('Remove this document from your briefcase?')) {
+  async function removeDoc(index) {
+    if (await SemptifyFeedback.confirm('Remove this document from your briefcase?', { confirmLabel: 'Remove' })) {
       fetch('/briefcase/remove/' + index, { method: 'POST' }).then(() => location.reload());
     }
   }

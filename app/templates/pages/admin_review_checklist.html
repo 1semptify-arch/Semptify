@@ -1201,8 +1201,8 @@ Please investigate and fix this issue. The test is failing and needs correction.
       }
     }
     
-    function resetAll() {
-      if (confirm('Reset all checkboxes and notes?')) {
+    async function resetAll() {
+      if (await SemptifyFeedback.confirm('Reset all checkboxes and notes?', { title: 'Reset checklist', confirmLabel: 'Reset', danger: true })) {
         reviewedItems.clear();
         localStorage.removeItem('reviewedItems');
         localStorage.removeItem('reviewNotes');

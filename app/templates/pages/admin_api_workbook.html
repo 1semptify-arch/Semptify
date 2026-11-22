@@ -348,8 +348,8 @@ document.getElementById("file").addEventListener("change", e=>{
   e.target.value = "";
 });
 
-document.getElementById("clear").addEventListener("click", ()=>{
-  if(!confirm("Clear ALL saved keys and notes from this browser? This cannot be undone.")) return;
+document.getElementById("clear").addEventListener("click", async ()=>{
+  if(!await SemptifyFeedback.confirm("Clear ALL saved keys and notes from this browser? This cannot be undone.", { title: 'Clear all', confirmLabel: 'Clear all', danger: true })) return;
   Object.keys(state).forEach(k=>delete state[k]);
   save(); render();
 });

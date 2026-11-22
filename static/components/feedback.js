@@ -32,7 +32,7 @@
             '@keyframes se-cf-fade{from{opacity:0}to{opacity:1}}',
             '.se-cf{background:var(--color-bg-card,var(--bg-card,#fff));color:var(--color-text-primary,var(--text-primary,inherit));border:1px solid var(--color-border,var(--border-color,#e5e5e5));border-radius:var(--radius-md,8px);box-shadow:0 12px 40px color-mix(in srgb, var(--color-black), transparent 70%);max-width:26rem;width:100%;padding:1.25rem 1.5rem}',
             '.se-cf-title{font-weight:600;font-size:1rem;margin:0 0 0.5rem}',
-            '.se-cf-msg{font-size:0.9rem;line-height:1.5;margin:0 0 1.25rem;color:var(--color-text-secondary,var(--text-secondary,inherit))}',
+            '.se-cf-msg{font-size:0.9rem;line-height:1.5;margin:0 0 1.25rem;color:var(--color-text-secondary,var(--text-secondary,inherit));white-space:pre-line}',
             '.se-cf-actions{display:flex;justify-content:flex-end;gap:0.5rem}',
             '.se-cf-btn{padding:0.5rem 1rem;border-radius:var(--radius-input,6px);font-size:0.875rem;font-weight:500;cursor:pointer;border:1px solid var(--color-border,var(--border-color,#d5d5d5));background:none;color:inherit;font-family:inherit}',
             '.se-cf-btn--confirm{background:var(--color-primary);border-color:transparent;color:var(--text-inverse,#fff)}',

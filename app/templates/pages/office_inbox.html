@@ -323,7 +323,7 @@
     }
 
     async function signDelivery(id) {
-      if (!confirm('By signing, you acknowledge you have read and agree to this document. Proceed?')) return;
+      if (!await SemptifyFeedback.confirm('By signing, you acknowledge you have read and agree to this document. Proceed?', { title: 'Sign document', confirmLabel: 'Sign' })) return;
       try {
         const resp = await fetch(`/api/delivery/${id}/sign`, {
           method: 'POST',

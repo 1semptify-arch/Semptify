@@ -128,7 +128,7 @@ document.getElementById('noteForm').addEventListener('submit', async function (e
 });
 
 async function deleteNote(id) {
-    if (!confirm('Delete this note?')) return;
+    if (!await SemptifyFeedback.confirm('Delete this note?', { confirmLabel: 'Delete', danger: true })) return;
     const response = await fetch('/api/sticky-notes/' + encodeURIComponent(id), { method: 'DELETE' });
     if (response.ok) {
         window.location.reload();
