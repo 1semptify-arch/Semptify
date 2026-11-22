@@ -2652,6 +2652,7 @@ async def lookup_user(
 async def restore_session(
     request: Request,
     response: Response,
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -2660,6 +2661,10 @@ async def restore_session(
     Request body: {"user_id": "usr_..."}
     Response: {"success": true, "redirect_url": "/tenant/dashboard"} OR
               {"oauth_required": true, "oauth_url": "/storage/providers?..."}
+
+    Proof of ownership is required before a cookie is issued: the caller must
+    already hold a valid signed semptify_uid cookie for the same user_id.
+    Otherwise the response directs them through OAuth again.
     """
     try:
         data = await request.json()
@@ -2668,10 +2673,17 @@ async def restore_session(
         if not user_id:
             return {"success": False, "error": "No user_id provided"}
 
-        # Parse user_id to get provider and role
-        from app.core.user_id import parse_user_id
+        # Never issue a cookie for an ID taken from the request body unless the
+        # caller already proves ownership of that exact ID.
+        from app.core.cookie_auth import verify_user_id
 
-        provider, role, provider_account_id = parse_user_id(user_id)
+        if verify_user_id(semptify_uid) != user_id:
+            return {
+                "success": False,
+                "oauth_required": True,
+                "oauth_url": f"/storage/providers?user_id={user_id}",
+                "message": "Please authenticate with your storage provider",
+            }
 
         # Check for existing valid session in DB
         from app.services.storage import get_valid_session
