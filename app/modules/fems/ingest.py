@@ -99,18 +99,26 @@ def chunk_text(text: str, size: int = 1000) -> list[str]:
     return chunks
 
 
-async def ingest_file(file_path: Path, case_id: int | None, db: AsyncSession) -> dict:
+async def ingest_file(file_path: Path, case_id: int | None, db: AsyncSession, owner_user_id: str) -> dict:
     """Ingest a single file: dedup, extract text, store chunks, extract phones."""
     file_hash = compute_hash(file_path)
 
-    # Check for duplicate
-    existing = (await db.execute(select(FemsDocument).where(FemsDocument.file_hash == file_hash))).scalar_one_or_none()
+    # Check for duplicate within this owner's documents
+    existing = (
+        await db.execute(
+            select(FemsDocument).where(
+                FemsDocument.file_hash == file_hash,
+                FemsDocument.owner_user_id == owner_user_id,
+            )
+        )
+    ).scalar_one_or_none()
 
     if existing:
         FEMS_QUARANTINE_DIR.mkdir(parents=True, exist_ok=True)
         dest = FEMS_QUARANTINE_DIR / file_path.name
         shutil.move(str(file_path), str(dest))
         q = FemsQuarantineFile(
+            owner_user_id=owner_user_id,
             filename=file_path.name,
             file_hash=file_hash,
             file_size=dest.stat().st_size,
@@ -124,6 +132,7 @@ async def ingest_file(file_path: Path, case_id: int | None, db: AsyncSession) ->
     text = extract_text(file_path)
 
     doc = FemsDocument(
+        owner_user_id=owner_user_id,
         case_id=case_id,
         filename=file_path.name,
         file_type=file_path.suffix.lower().lstrip("."),

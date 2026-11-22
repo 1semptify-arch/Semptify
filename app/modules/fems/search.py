@@ -11,12 +11,16 @@ from app.modules.fems.models import (
 )
 
 
-async def search_evidence(keywords: str, db: AsyncSession) -> list[dict]:
+async def search_evidence(keywords: str, db: AsyncSession, owner_user_id: str) -> list[dict]:
     """Search documents and chunks for keywords."""
     results = []
     kw = f"%{keywords}%"
 
-    docs = (await db.execute(select(FemsDocument).where(FemsDocument.extracted_text.ilike(kw)))).scalars().all()
+    docs = (
+        (await db.execute(select(FemsDocument).where(FemsDocument.extracted_text.ilike(kw), FemsDocument.owner_user_id == owner_user_id)))
+        .scalars()
+        .all()
+    )
 
     for doc in docs:
         results.append(
@@ -30,7 +34,17 @@ async def search_evidence(keywords: str, db: AsyncSession) -> list[dict]:
             }
         )
 
-    chunks = (await db.execute(select(FemsChunk).where(FemsChunk.content.ilike(kw)))).scalars().all()
+    chunks = (
+        (
+            await db.execute(
+                select(FemsChunk)
+                .join(FemsDocument, FemsChunk.document_id == FemsDocument.id)
+                .where(FemsChunk.content.ilike(kw), FemsDocument.owner_user_id == owner_user_id)
+            )
+        )
+        .scalars()
+        .all()
+    )
 
     seen_docs = {r["id"] for r in results}
     for chunk in chunks:
@@ -47,7 +61,7 @@ async def search_evidence(keywords: str, db: AsyncSession) -> list[dict]:
     return results
 
 
-async def search_by_phone(number: str, db: AsyncSession) -> list[dict]:
+async def search_by_phone(number: str, db: AsyncSession, owner_user_id: str) -> list[dict]:
     """Find all documents linked to a phone number."""
     phone = (
         (await db.execute(select(FemsPhoneNumber).where(FemsPhoneNumber.number.ilike(f"%{number}%")))).scalars().all()
@@ -59,7 +73,12 @@ async def search_by_phone(number: str, db: AsyncSession) -> list[dict]:
 
         for link in links:
             doc = (
-                await db.execute(select(FemsDocument).where(FemsDocument.id == link.document_id))
+                await db.execute(
+                    select(FemsDocument).where(
+                        FemsDocument.id == link.document_id,
+                        FemsDocument.owner_user_id == owner_user_id,
+                    )
+                )
             ).scalar_one_or_none()
 
             if doc:

@@ -11,6 +11,7 @@ class FemsCase(Base):
     __tablename__ = "fems_cases"
 
     id = Column(Integer, primary_key=True, index=True)
+    owner_user_id = Column(String(100), index=True, nullable=True)
     case_number = Column(String(100), unique=True, nullable=False)
     title = Column(String(500))
     status = Column(String(50), default="active")
@@ -23,6 +24,7 @@ class FemsDocument(Base):
     __tablename__ = "fems_documents"
 
     id = Column(Integer, primary_key=True, index=True)
+    owner_user_id = Column(String(100), index=True, nullable=True)
     case_id = Column(Integer, ForeignKey("fems_cases.id"), nullable=True)
     filename = Column(String(500), nullable=False)
     file_type = Column(String(50))
@@ -75,6 +77,7 @@ class FemsQuarantineFile(Base):
     __tablename__ = "fems_quarantine"
 
     id = Column(Integer, primary_key=True, index=True)
+    owner_user_id = Column(String(100), index=True, nullable=True)
     filename = Column(String(500), nullable=False)
     file_hash = Column(String(64), index=True)
     file_size = Column(BigInteger, default=0)
