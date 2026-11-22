@@ -321,13 +321,12 @@ class ChainOfCustodyResponse(BaseModel):
 @router.post("/upload", response_model=UploadResponse)
 async def upload_document(
     file: UploadFile = File(...),
-    user_id: str = Form(..., description="User ID for the document owner"),
     username: str = Form("unknown", description="Username for notarization"),
-    access_token: str | None = Form(None, description="Storage provider access token"),
-    storage_provider: str = Form("local", description="Storage provider"),
     description: str | None = Form(None, description="Document description"),
     tags: str | None = Form(None, description="Comma-separated tags"),
     urgency: str | None = Form("normal", description="Queue priority: low, normal, high, urgent"),
+    user: StorageUser = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Upload a document for intake processing with notarization.
@@ -339,7 +338,25 @@ async def upload_document(
     4. Queue for processing
 
     Returns status with notarization proof.
+
+    Identity comes from the authenticated session (yellow_access) — never
+    from form fields — so a caller cannot write into another tenant's vault.
     """
+    user_id = user.user_id
+
+    # Resolve the access token from the session, refreshing if needed
+    # (same fallback chain as /upload/auto).
+    real_token = getattr(user, "access_token", None)
+    if not real_token or real_token == "no-token":
+        try:
+            _, token_obj, _ = await ensure_valid_token(user_id, db)
+            real_token = token_obj.access_token if token_obj else None
+        except Exception as e:
+            logger.warning("Token resolution failed for user %s: %s", user_id, e)
+            real_token = None
+
+    resolved_provider = getattr(user, "provider", None) or "local"
+
     # Read file content
     content = await file.read()
     settings = get_settings()
@@ -370,7 +387,7 @@ async def upload_document(
                 user_id=user_id,
                 username=username,
                 storage_path="",  # Will be set after vault upload
-                storage_provider=storage_provider,
+                storage_provider=resolved_provider,
                 document_type=None,
                 description=description,
                 tags=tags_list,
@@ -396,8 +413,8 @@ async def upload_document(
                 content=content,
                 mime_type=file.content_type or "application/octet-stream",
                 source_module="intake",
-                access_token=access_token,
-                storage_provider=storage_provider,
+                access_token=real_token,
+                storage_provider=resolved_provider,
             )
             vault_id = vault_doc.vault_id
 
@@ -453,8 +470,8 @@ async def upload_document(
     overlay_record_ids = await _get_overlay_record_ids(
         vault_id,
         user_id=user_id,
-        storage_provider=storage_provider,
-        access_token=access_token,
+        storage_provider=resolved_provider,
+        access_token=real_token,
     )
 
     return UploadResponse(
@@ -805,14 +822,18 @@ async def upload_and_process(
 @router.post("/upload/batch", response_model=BatchUploadResponse)
 async def upload_documents_batch(
     files: list[UploadFile] = File(...),
-    user_id: str = Form(...),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Upload multiple documents at once.
 
     Returns status for each file.
+
+    Identity comes from the authenticated session (yellow_access) — never
+    from form fields — so a caller cannot write into another tenant's vault.
     """
+    user_id = user.user_id
     engine = get_intake_engine()
     settings = get_settings()
 

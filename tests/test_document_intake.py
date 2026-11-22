@@ -11,6 +11,7 @@ Covers:
 - API endpoints
 """
 
+import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -509,16 +510,12 @@ class TestIntakeUploadAPI:
             data={"user_id": "user123"},
         )
 
-        # Either blocked by storage middleware (401) or validation (400)
+        # Either blocked by storage middleware/auth (401) or validation (400)
         assert response.status_code in [400, 401, 403]
         data = response.json()
-        # Should have error message
-        if "detail" in data:
-            assert "empty" in data["detail"].lower() or "storage" in data["detail"].lower()
-        elif "error" in data:
-            error_val = data.get("error", "")
-            msg = error_val.get("message", "") if isinstance(error_val, dict) else str(error_val)
-            assert "empty" in msg.lower() or "storage" in msg.lower()
+        # Should have an error message mentioning the cause (empty file or storage/auth)
+        msg = json.dumps(data).lower()
+        assert "empty" in msg or "storage" in msg
 
     def test_upload_valid_file(self, client, engine):
         """Valid file upload succeeds."""
@@ -537,7 +534,7 @@ class TestIntakeUploadAPI:
             assert data["status"] in ["received", "notarized"]
 
     def test_upload_returns_document_id(self, client, engine):
-        """Upload returns document ID for status tracking."""
+        """Unauthenticated upload is rejected — user_id form field cannot spoof identity."""
         content = b"Test document for tracking"
         response = client.post(
             "/api/intake/upload",
@@ -545,12 +542,20 @@ class TestIntakeUploadAPI:
             data={"user_id": "track_test_user"},
         )
 
-        assert response.status_code == 200
-        doc_id = response.json()["id"]
+        assert response.status_code == 401
+        # Nothing was registered under the spoofed user ID
+        assert all(d.user_id != "track_test_user" for d in engine._documents.values())
 
-        # Can use ID to check status
-        status_response = client.get(f"/api/intake/status/{doc_id}")
-        assert status_response.status_code == 200
+    def test_upload_batch_requires_session(self, client, engine):
+        """Batch upload ignores form user_id and requires an authenticated session."""
+        response = client.post(
+            "/api/intake/upload/batch",
+            files=[("files", ("doc.txt", b"notice content", "text/plain"))],
+            data={"user_id": "GUvictim999"},
+        )
+
+        assert response.status_code == 401
+        assert all(d.user_id != "GUvictim999" for d in engine._documents.values())
 
 
 class TestIntakeRetrievalAPI:
