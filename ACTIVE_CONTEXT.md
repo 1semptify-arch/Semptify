@@ -33,7 +33,7 @@
 
 **Where things actually stand (2026-11-23):**
 - Prod is up on Render (free tier) + Neon (scale-to-zero); cold-boot and wake-burn mitigations are live (#350, lazy routers, NullPool).
-- Current work: cleanup & polish only — no new features. Next queued item: the central plain-words pass on contract copy (Backlog below).
+- Current work: cleanup & polish only — no new features. The central contract-copy pass is done (Backlog below).
 
 **Earlier standing (2026-09-12):**
 - Site Shell v5 is the canonical chrome on all migrated families — asymmetric rail layout, paper background, thin role-colored header/footer, liquid root scaling, no desktop page-scroll.
@@ -42,7 +42,7 @@
 
 ## Backlog (not urgent, tracked centrally — do not fix per-function)
 
-- **Contract copy is too technical for user-facing display** (e.g., "Law Library Get Statute (SSOT)", "CANONICAL detailed view..."). Templates already expose title/description override blocks, so this is a copy pass, not a contract change — but it should happen once, centrally, across all functions, not patched ad hoc per page as it's noticed.
+- ~~**Contract copy is too technical for user-facing display**~~ DONE — central pass lives in `app/core/contract_copy.py` (Jinja globals `contract_title` / `contract_description`, 2026-09-08/10); 2026-11-23 added first-letter capitalization for humanized descriptions. `pages/module_page.html` reads hand-written plain copy (`role_ui._MODULE_CONTRACTS`, PageContracts), not FunctionGroupContracts, so it needs no pass. Original note: (e.g., "Law Library Get Statute (SSOT)", "CANONICAL detailed view..."). Templates already expose title/description override blocks, so this is a copy pass, not a contract change — but it should happen once, centrally, across all functions, not patched ad hoc per page as it's noticed.
 
 ## Core Rules (current, corrected)
 
