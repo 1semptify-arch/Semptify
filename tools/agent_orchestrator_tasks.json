@@ -4131,5 +4131,19 @@
     "updated_at": "2026-09-18T13:43:46.130285+00:00",
     "target_model": "trusted",
     "assigned_agent": "unassigned"
+  },
+  {
+    "id": "state-driven-ui-001",
+    "title": "State-driven UI runtime (state-ui.js) + smart-toolbar design-system component + skill",
+    "description": "Global rollout of the deterministic state/mode-map pattern (smart toolbars + adaptive navigation): add static/js/state-ui.js runtime, design-system component, and .devin/skills/state-driven-ui + .github/prompts mirror so agents apply it consistently.",
+    "file_path": "static/js/state-ui.js",
+    "category": "feature",
+    "priority": "medium",
+    "status": "in_progress",
+    "assigned_agent": "devin",
+    "created_at": "2026-11-23T08:36:57Z",
+    "target_model": "unlimited",
+    "notes": "Requested by Brad 2026-11-23 in Devin session 6838e1036ccc4387b9ff58689d222508 \u2014 global UI application of state-driven UI pattern.",
+    "updated_at": "2026-11-23T08:37:08.793652+00:00"
   }
 ]
