@@ -88,7 +88,6 @@ async def health_check() -> dict:
 
 @router.get("/conversations", response_model=ConversationListResponse)
 async def get_conversations(
-    access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -141,7 +140,6 @@ async def get_conversation(
     conversation_id: str,
     before_message_id: str | None = None,
     limit: int = 50,
-    access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -424,7 +422,6 @@ async def upload_attachment(
 @router.get("/deliveries/{delivery_id}/conversation")
 async def get_delivery_conversation(
     delivery_id: str,
-    access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
@@ -499,7 +496,6 @@ async def get_delivery_conversation(
 async def send_typing_indicator(
     conversation_id: str,
     is_typing: bool = True,
-    access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),

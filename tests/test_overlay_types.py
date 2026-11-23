@@ -31,6 +31,7 @@ class TestOverlayTypeEnum:
             "PARTY_EXTRACTION",
             "HIGHLIGHT",
             "NOTE",
+            "STICKY_NOTE",
             "FOOTNOTE",
             "TRACKED_EDIT",
             "FORM_FILL",
@@ -45,6 +46,31 @@ class TestOverlayTypeEnum:
             "CASE_DATA",
             "FILEDORED",
             "DUPLICATE_DETECTION",
+            "DOCUMENT_KEY",
+            "EVIDENCE_INDEX",
+            "DOCUMENT_SHARE",
+            "CASE_SHARE",
+            "REVIEW_THREAD",
+            "LEGAL_TRAIL_RECORD",
+            "RELEASE_RECORD",
+            "JOURNAL_ENTRY",
+            "INCIDENT",
+            "TIMELINE_EVENT",
+            "EVICTION_TIMELINE_EVENT",
+            "CALENDAR_EVENT",
+            "RENT_LEDGER_ENTRY",
+            "CONTACT",
+            "CONTACT_INTERACTION",
+            "THIRD_PARTY_CONTACT",
+            "EXTERNAL_MAPPING",
+            "AGENCY_MAPPING",
+            "PROPERTY_MAPPING",
+            "COURT_CASE_MAPPING",
+            "MNDES_PACKAGE",
+            "COMPLAINT",
+            "DISPUTE_RECORD",
+            "PATTERN_RECORD",
+            "COMPARISON_ENTRY",
         }
         assert {m.name for m in OverlayType} == expected
 
@@ -67,7 +93,10 @@ class TestCategorySets:
         assert OverlayType.NOTE in ANNOTATION_OVERLAYS
         assert OverlayType.FOOTNOTE in ANNOTATION_OVERLAYS
         assert OverlayType.TRACKED_EDIT in ANNOTATION_OVERLAYS
-        assert len(ANNOTATION_OVERLAYS) == 4
+        assert OverlayType.STICKY_NOTE in ANNOTATION_OVERLAYS
+        assert OverlayType.DOCUMENT_KEY in ANNOTATION_OVERLAYS
+        assert OverlayType.EVIDENCE_INDEX in ANNOTATION_OVERLAYS
+        assert len(ANNOTATION_OVERLAYS) == 7
 
     def test_form_overlays(self):
         assert OverlayType.FORM_FILL in FORM_OVERLAYS

@@ -10,7 +10,7 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Builder - Install dependencies
 # -----------------------------------------------------------------------------
-FROM python:3.11-slim AS builder
+FROM python:3.11.9-slim AS builder
 
 WORKDIR /app
 
@@ -42,7 +42,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # -----------------------------------------------------------------------------
 # Stage 2: Runtime - Minimal production image
 # -----------------------------------------------------------------------------
-FROM python:3.11-slim AS runtime
+FROM python:3.11.9-slim AS runtime
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -91,6 +91,28 @@ ENV EMBEDDING_CACHE_DIR=/opt/fastembed-cache \
 RUN python -c "from fastembed import TextEmbedding; TextEmbedding('sentence-transformers/all-MiniLM-L6-v2', cache_dir='/opt/fastembed-cache')" && \
     chown -R semptify:semptify /opt/fastembed-cache
 
+# -----------------------------------------------------------------------------
+# Bill Platform — embedded, so ONE Render service carries both apps inside the
+# workspace's shared 750 free-instance-hours/month pool. Separate public repo
+# (1semptify-arch/bill-platform — stdlib-only Python), baked in at build time.
+# BILL_UPSTREAM switches on the FastAPI proxy middleware for /bill*,
+# /your-voice*, /what-the-bill-changes* in app/main.py. Its SQLite stays
+# durable via the same Litestream→R2 setup the standalone bill-platform Render
+# service uses (env vars LITESTREAM_ACCESS_KEY_ID / LITESTREAM_SECRET_ACCESS_KEY
+# / R2_BUCKET / R2_ENDPOINT set on the Semptify service in the Render dashboard).
+# Mirrored in Dockerfile.render — keep the two files' embed blocks in sync.
+# -----------------------------------------------------------------------------
+ARG BILL_REPO_REF=main
+RUN curl -fsSL "https://codeload.github.com/1semptify-arch/bill-platform/tar.gz/refs/heads/${BILL_REPO_REF}" \
+      | tar xz -C /opt \
+    && mv "/opt/bill-platform-${BILL_REPO_REF}" /opt/bill-platform \
+    && curl -fsSL "https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64.tar.gz" \
+      | tar xz -C /opt/bill-platform \
+    && chown -R semptify:semptify /opt/bill-platform
+
+ENV BILL_MOUNT=/bill \
+    BILL_UPSTREAM=http://127.0.0.1:8093
+
 # Switch to non-root user
 USER semptify
 
@@ -114,4 +136,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Note: migrations are handled by the app's lifespan startup (Stage 3b) which
 # catches errors gracefully. Running alembic in CMD would fail the deploy on
 # partial migrations (schema drift). The app itself runs alembic on startup.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips '*'"]
+CMD ["sh", "-c", "(cd /opt/bill-platform && mkdir -p data && if [ -n \"$LITESTREAM_ACCESS_KEY_ID\" ]; then ./litestream restore -if-replica-exists -config litestream.yml ./data/platform.db; ./litestream replicate -config litestream.yml -exec 'python server.py --host 127.0.0.1 --port 8093'; else python server.py --host 127.0.0.1 --port 8093; fi) & exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --proxy-headers --forwarded-allow-ips '*'"]

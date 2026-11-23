@@ -1052,10 +1052,39 @@ def get_admin_token_from_request(request: Request) -> str | None:
 security_bearer = HTTPBearer(auto_error=False)
 
 
+def _idle_gate(request: Request, semptify_idle: str | None, user_id: str, role_value: str | None) -> str:
+    """
+    G10.8 idle-timeout gate for get_current_user.
+
+    Verifies the signed semptify_idle marker against the role's idle window
+    (~30 min legal/professional, ~60 min tenant — see app.core.session_idle)
+    and returns the verdict: "ok" | "missing" | "expired" | "invalid".
+
+    On "ok"/"missing" the request is flagged for a marker refresh, relayed to
+    the outgoing response by IdleActivityMiddleware (sliding window).
+    "expired"/"invalid" → caller treats the request as unauthenticated
+    (clean reconnect, same as a missing session).
+    """
+    from app.core.session_idle import idle_timeout_for_role, request_idle_refresh, verify_idle_marker
+
+    verdict = verify_idle_marker(semptify_idle, user_id, idle_timeout_for_role(role_value))
+    if verdict in ("ok", "missing"):
+        request_idle_refresh(request, user_id)
+    else:
+        logger.info(
+            "Idle session timeout: user=%s*** role=%s verdict=%s",
+            (user_id or "")[:6],
+            role_value,
+            verdict,
+        )
+    return verdict
+
+
 async def get_current_user(
     request: Request,
     semptify_session: str | None = Cookie(None),
     semptify_uid: str | None = Cookie(None),
+    semptify_idle: str | None = Cookie(None),
     credentials: HTTPAuthorizationCredentials | None = Depends(security_bearer),
     settings: Settings = Depends(get_settings),
 ) -> UserContext | None:
@@ -1081,7 +1110,17 @@ async def get_current_user(
     if session_id:
         session = get_session(session_id)
         if session:
-            return session.to_context()
+            ctx = session.to_context()
+            # G10.8: enforce inactivity expiry before trusting the session.
+            idle_verdict = _idle_gate(request, semptify_idle, ctx.user_id, ctx.get_effective_role().value)
+            if idle_verdict in ("ok", "missing"):
+                return ctx
+            if idle_verdict == "expired":
+                # Marker verified for this user but stale → session is dead.
+                invalidate_session(session_id)
+            # "invalid" (foreign/tampered marker) → leave the session intact;
+            # either way fall through to the semptify_uid path, whose own
+            # marker check decides whether that identity may authenticate.
 
     # Check for welcome sequence user ID cookie
     # SECURITY: Only accept UIDs that look like valid connected users
@@ -1121,6 +1160,12 @@ async def get_current_user(
 
         # Only create context if we have valid provider and role codes
         if provider and role:
+            # G10.8: enforce inactivity expiry before minting the context —
+            # a stale marker means the session is unauthenticated, and we skip
+            # the token-refresh call entirely.
+            if _idle_gate(request, semptify_idle, raw_uid, role.value) not in ("ok", "missing"):
+                return None
+
             # Get a valid access token, refreshing silently if expired.
             # Use raw_uid (unsigned) — token manager and session DB key on raw user_id.
             #

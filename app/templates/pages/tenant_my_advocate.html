@@ -1,6 +1,8 @@
 {% extends "shell_base.html" %}
 {% block body_class %}shell shell--solo{% endblock %}
 
+{% block safety_exit %}{% include "components/safety_exit.html" %}{% endblock %}
+
 {% block title %}My Advocate - Semptify{% endblock %}
 
 {% block styles %}
@@ -301,8 +303,7 @@ async function fetchJSON(url, opts) {
     }
 }
 function notify(kind, msg) {
-    if (window.SemptifyFeedback) SemptifyFeedback[kind](msg);
-    else alert(msg);
+    SemptifyFeedback[kind](msg);
 }
 function formatDate(iso) {
     if (!iso) return '—';
@@ -318,9 +319,13 @@ function esc(s) {
 }
 
 // ---- My ID ----
+// semptify_uid holds "<user_id>.<hmac>" — strip the signature for display.
 function getCurrentUserId() {
-    const match = document.cookie.match(/(?:^|;)\s*semptify_user_id=([^;]+)/);
-    return match ? decodeURIComponent(match[1]) : null;
+    const match = document.cookie.match(/(?:^|;)\s*semptify_uid=([^;]+)/);
+    if (!match) return null;
+    const val = decodeURIComponent(match[1]);
+    const dot = val.lastIndexOf('.');
+    return dot > 0 ? val.substring(0, dot) : val;
 }
 const myId = getCurrentUserId();
 document.getElementById('my-user-id').textContent = myId || 'Not signed in';
@@ -482,6 +487,9 @@ async function loadAdvocates() {
             ? '<span class="badge badge--pending">Waiting for them to accept</span>'
             : `<span class="badge ${a.initiated_by === 'tenant' ? 'badge--tenant' : 'badge--other'}">${who}</span>`;
         const last = a.last_access ? `Last opened ${formatWhen(a.last_access)}` : 'Never opened anything';
+        const since = a.status === 'active' && a.linked_at
+            ? `<strong>Working with you since ${formatDate(a.linked_at)}</strong> · `
+            : '';
         const actions = a.status === 'pending_outgoing'
             ? `<button class="btn btn--secondary btn--sm" data-revoke="${esc(a.advocate_user_id)}">Cancel request</button>`
             : `<button class="btn btn--secondary btn--sm" data-scope-edit="${esc(a.advocate_user_id)}">Change access</button>
@@ -491,7 +499,7 @@ async function loadAdvocates() {
                 <div class="advocate-avatar">${avatarInitials(a.advocate_user_id)}</div>
                 <div class="advocate-info">
                     <div class="advocate-name">${esc(a.advocate_user_id)}${badge}</div>
-                    <div class="advocate-meta">${esc(scopeLabel(a))}${a.scope ? ' · ' : ''}${last}</div>
+                    <div class="advocate-meta">${since}${esc(scopeLabel(a))}${a.scope ? ' · ' : ''}${last}</div>
                 </div>
                 <div class="advocate-actions">${actions}</div>
             </div>`;

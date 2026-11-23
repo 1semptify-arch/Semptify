@@ -51,6 +51,8 @@ INPUT_SOURCES = frozenset(
     }
 )
 
+SURFACE_KINDS = frozenset({"page", "endpoint", "nav", "other"})
+
 
 class ModuleContractInput(BaseModel):
     """One input the module accepts."""
@@ -115,6 +117,63 @@ class FlowStep(BaseModel):
     group_name: str | None = None  # which FunctionGroupContract declared this step
 
 
+class SurfaceExtra(BaseModel):
+    """A declared surface element beyond the module's minimum set.
+
+    Zen step 3 (`.devin/rules/11-zen-algorithms.md`): anything beyond the
+    minimum set must carry its own stated justification tied to the goal.
+    `justification` is required — "might need it later" is a finding, not a
+    justification, and is caught at review.
+    """
+
+    name: str = Field(..., min_length=1)
+    kind: str = Field(..., min_length=1)
+    justification: str = Field(..., min_length=1)
+
+    @field_validator("kind")
+    @classmethod
+    def _kind_known(cls, v: str) -> str:
+        if v not in SURFACE_KINDS:
+            raise ValueError(
+                f"surface extra kind {v!r} is not in the approved set: {sorted(SURFACE_KINDS)}"
+            )
+        return v
+
+
+class MinimumSurface(BaseModel):
+    """Zen structural declaration — the surface this module exists to serve.
+
+    `goal` is the one-sentence answer to "what is this module for"; `pages`,
+    `endpoints`, and `nav` are the minimum set of surface elements that reach
+    that goal; `extras` lists anything beyond the minimum, each carrying a
+    spoken goal-tied justification.
+    """
+
+    goal: str = Field(..., min_length=1)
+    pages: list[str] = Field(default_factory=list)
+    endpoints: list[str] = Field(default_factory=list)
+    nav: list[str] = Field(default_factory=list)
+    extras: list[SurfaceExtra] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _surface_reaches_goal(self) -> "MinimumSurface":
+        if not (self.pages or self.endpoints or self.nav):
+            raise ValueError(
+                "minimum_surface declares no pages, endpoints, or nav — an "
+                "empty minimum is a shortfall, not a minimum"
+            )
+        declared = set(self.pages) | set(self.endpoints) | set(self.nav)
+        dupes = {e.name for e in self.extras if e.name in declared}
+        if dupes:
+            raise ValueError(
+                f"extras duplicate declared minimum items: {sorted(dupes)}"
+            )
+        return self
+
+    def surface_total(self) -> int:
+        return len(self.pages) + len(self.endpoints) + len(self.nav)
+
+
 class ModuleContract(BaseModel):
     """Part 1 build contract for a module/function.
 
@@ -142,6 +201,8 @@ class ModuleContract(BaseModel):
     process_context: str = Field(..., min_length=1)
 
     narrative_events: list[NarratorEvent] = Field(default_factory=list)
+
+    minimum_surface: MinimumSurface | None = None
 
     @field_validator("output_type")
     @classmethod
@@ -189,6 +250,9 @@ class ModuleContractIndexEntry(BaseModel):
     has_preview_state: bool
     has_review_state: bool
     narrative_event_count: int
+    has_minimum_surface: bool
+    surface_total: int
+    surface_extra_count: int
 
 
 class ModuleContractRegistry:
@@ -270,6 +334,7 @@ class ModuleContractRegistry:
             parts = module_package.split(".")
             module_name = parts[-1]
             contract_path = f"app/modules/{module_name}/module_contract.json"
+            surface = contract.minimum_surface
             entries.append(
                 ModuleContractIndexEntry(
                     module_path=module_package,
@@ -279,6 +344,9 @@ class ModuleContractRegistry:
                     has_preview_state=bool(contract.preview_state),
                     has_review_state=bool(contract.review_state),
                     narrative_event_count=len(contract.narrative_events),
+                    has_minimum_surface=surface is not None,
+                    surface_total=surface.surface_total() if surface else 0,
+                    surface_extra_count=len(surface.extras) if surface else 0,
                 ).model_dump()
             )
 

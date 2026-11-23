@@ -1,3 +1,371 @@
+## Session — 2026-11-23 — main CI back to green: style guard + stub check (Devin)
+
+### Guardrail Engine Run — 2026-11-23T00:49:03+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-23T00:48:49+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+**Done:**
+- `app/templates/components/safety_exit.html` — hardcoded `#fafafa` / `#777` replaced with `var(--tone-50)` / `var(--text-muted)`.
+- `app/templates/pages/legal_dashboard.html` — `.badge` font-size `0.72rem` → `0.75rem` (style-guard floor).
+- `design-system/components/function-groups/onboarding/onboarding-tracker.html` — `{{ component_id }_next_btn` → `{{ component_id }}_next_btn` (Jinja `TemplateSyntaxError: unexpected '}'` that broke the DesignSystem Hub render). Design-system component only; not `app/modules/onboarding/`.
+- `sandbox/slice1_verify.py`, `sandbox/slice7_verify.py` — `# stub-detector: ignore` on `_NoRedirect.redirect_request()`: returning `None` is how urllib blocks redirects, not a stub.
+
+- `app/core/contract_copy.py` — humanized contract descriptions now start with a capital letter ("health check for core system." → "Health check for core system."); `tests/test_contract_copy.py` added. ACTIVE_CONTEXT refreshed (prod up, Nov ship log) and its contract-copy backlog item marked done — the central pass already existed since 2026-09-08.
+
+**Verified:** `tools/style_guard.py` passes (0 new); `tools/stub_detector.py` finds 0 real stubs; `py_compile` clean on 3.11.
+
+## Session — 2026-11-19 — /api/dc/intake/* mounts via product_manifest in all deploy modes (swe-2, task task-5f475242)
+
+**Context:** `/api/dc/intake/*` (OCR-first intake confirm loop) 404'd on
+render_mvp deploys and under `SEMPTIFY_LAZY_ROUTERS=1`: the router was only
+mounted by an explicit `create_app` block gated on
+`not is_mvp_deploy() and not _lazy_routers`, and it had no product_manifest
+entry — so in the two modes where that block was skipped, nothing mounted it.
+
+**Done:**
+- `app/core/product_manifest.py` — registered
+  `app.modules.document_center.intake_router` as a CORE entry
+  (`prefix="/api/dc/intake"`, lifecycle stable, requires_role ()). CORE is
+  inside the render_mvp allow-list, so `register_tiers` now mounts it in
+  every mode — eager, deferred lazy warmup, and render_mvp.
+- `app/main.py` — removed the now-dead explicit mount block: it could only
+  run in the one mode where `register_tiers` had already mounted both DC
+  routers, so the manifest is now the single mount path.
+
+**Verified:** `py_compile` clean; `register_tiers` mounts
+`/api/dc/intake` under all three modes (render_mvp allow-list,
+SEMPTIFY_LAZY_ROUTERS=1, eager dev — verified via include_context prefix);
+end-to-end `app.main` eager import logs "Document Center intake router
+connected at /api/dc/intake" (139 routers, 0 errors); end-to-end lazy run
+(create_app deferred → run_deferred_registration) flips
+`routers_ready=True` with intake mounted and route audit reporting 0
+uncovered public routes; 30/30 `test_dc_smoke.py` pass.
+
+
+## Session — 2026-11-19 — G10.8 idle session timeout implemented (swe-2, task task-b182ac7a)
+
+**Context:** Acceptance matrix row G10.8 failed the slice-7 sweep — the
+`semptify_uid` auth cookie lives 1 year with zero inactivity enforcement.
+`advanced_security.SessionManager.inactive_timeout` is dead config
+(`validate_session` never compares it) and `core/sessions.py` defaults to
+in-memory storage — wiped on every Render spin-down, which would mass-logout
+users on each deploy.
+
+**Done:**
+- `app/core/session_idle.py` (new) — G10.8 SSOT: HMAC-signed `semptify_idle`
+  marker cookie (`<user_id>:<unix_ts>.<hmac>`, domain `"idle"` so a
+  `semptify_uid` sig can't be replayed), role-tiered windows (30 min
+  legal/professional: admin/manager/advocate/legal/judge/agency/developer;
+  60 min tenant-side), `verify_idle_marker` verdicts
+  (ok/missing/expired/invalid), and `IdleActivityMiddleware` — relays the
+  refreshed marker onto the outgoing response (required because
+  dependency-injected Response headers never reach the browser on routes
+  returning `Response` objects directly — FastAPI routing.py:711) AND
+  intercepts `/storage/reconnect` for idle-expired users, forcing the
+  provider picker → OAuth handshake so a live DB session row can't
+  silently resurrect a timed-out session (also breaks a stale-marker
+  reconnect loop).
+- `app/core/security.py` — `get_current_user` runs `_idle_gate` on both auth
+  paths (StoredSession and `semptify_uid`). Fresh/missing → refresh flag set
+  (missing = graceful migration for pre-feature 1-yr cookies); expired →
+  unauthenticated + StoredSession invalidated; invalid → unauthenticated,
+  session untouched. Gate short-circuits before `ensure_valid_token`.
+- `app/core/cookie_auth.py` — `set_auth_cookie` issues the idle marker
+  atomically (every session starts armed; re-auth after timeout re-arms
+  both); `clear_auth_cookie` deletes it.
+- `app/main.py` — `IdleActivityMiddleware` registered with the other
+  security middleware.
+
+**Verified:** `py_compile` all touched files; marker unit tests (verdicts,
+role windows, domain-separation replay rejection); `get_current_user`
+integration (fresh→auth+flag, stale→401-path, missing→migrate, tampered→
+denied); middleware relay sets the cookie on HTML + redirect responses;
+existing `authenticated_client` fixture (uid-only cookie) unaffected —
+missing marker migrates to a fresh window instead of hard-expiring.
+
+**Re-entry:** a timed-out user is routed to `/storage/providers` → OAuth
+handshake → `set_auth_cookie` re-arms the marker on success. Reconnect's
+silent session-valid path does NOT rescue idle-expired markers (enforced by
+the middleware intercept). No half-state.
+
+
+## Session — 2026-11-14 — locale selector hidden until a catalog is human_reviewed (swe-2, task task-5c21619e)
+
+### Guardrail Engine Run — 2026-11-14T06:39:26+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+**Context:** The footer locale selector offered 14 languages, but all 13
+non-English catalogs are `_meta.status: "machine"` covering ~23 chrome
+strings each — selecting one changed almost nothing visible (a soft dead
+end). `docs/blueprints/languages_prep_blueprint.md` decision #2
+recommended hiding the selector until the first human_reviewed catalog;
+the same blueprint's review rule says machine drafts stay invisible.
+
+**Done:**
+- `app/core/i18n.py` — new `reviewed_locales()` helper returning only
+  catalogs with `_meta.status == "human_reviewed"`.
+- `app/templates/components/locale_selector.html` — whole form guarded on
+  `reviewed_locales|length > 1`; options now iterate `reviewed_locales`
+  (only reviewed languages are ever offered); the `*` machine-note markup
+  removed (dead — machine catalogs are never listed).
+- `app/templates/components/footer.html` — the wrapper `.footer-help`
+  div guarded on the same condition so no stray empty element remains.
+- `reviewed_locales` exposed as a Jinja global alongside the existing
+  i18n globals in `app/main.py`, `app/modules/law_library/router.py`,
+  `app/modules/page_router/router.py`, `app/modules/mndes/router.py`,
+  `app/modules/role_ui/router.py`.
+- `tests/test_i18n.py` — two tests pinning `available_locales` (non-stub)
+  vs `reviewed_locales` (human_reviewed only) semantics.
+
+**Unchanged:** `available_locales()` semantics and the
+`GET /api/i18n/locale` response (still reports all non-stub locales for
+JS consumers). `POST /api/i18n/set-locale` still accepts any supported
+locale — direct POSTs and Accept-Language resolution are unaffected.
+
+**Self-unhiding:** when a translator marks any non-en catalog
+`human_reviewed`, the selector reappears on restart offering exactly the
+reviewed set — no flag to flip.
+
+**Verified:** `py_compile` clean on all touched files;
+`pytest tests/test_i18n.py` 16/16 pass. Live app on :8025 —
+`GET /components/footer` renders the complete footer with zero
+`.locale-selector` markup; `GET /` same; `/api/i18n/locale` unchanged.
+Browser check (IronBee) at 1280px + 375px: 0 `.locale-selector`
+elements, footer intact, no console errors. Jinja render checks: form
+renders with both options once a second locale is human_reviewed, and
+no empty `.footer-help` div when hidden.
+
+**Decision flag:** implements blueprint decision #2 option (a) —
+"hide until first human_reviewed page" was the documented
+recommendation; if Brad prefers option (b) (always visible), revert is
+the `{% if reviewed_locales|length > 1 %}` guard in the two templates.
+
+
+## Session — 2026-11-14 — route_audit: app-shell docs mount exempted as infra (swe-2, task task-04f68193)
+
+**Context:** On every production startup the audit warned `GET /api/docs`,
+`/api/redoc`, `/api/openapi.json` had no FunctionGroupContract coverage.
+The routes are FastAPI built-ins mounted under `/api/` in `create_app`
+(`docs_url`/`redoc_url`/`openapi_url`), public by the 2026-11-02 decision
+and whitelisted in `StorageRequirementMiddleware.PUBLIC_PATHS`. A
+`documentation_public_api_docs` contract already declares them, but the
+documentation module is `ProductTier.DEV`, so `load_all_contracts` skips
+it under production tiers (CORE/EXTENDED/ADVOCATE/ADMIN) while the docs
+mount exists in every tier — coverage could never reach them outside dev.
+
+**Done:** `app/core/route_audit.py` — new `_INFRA_PATHS` exact-match set
+(`"/api/docs"`, `"/api/redoc"`, `"/api/openapi.json"`,
+`"/api/docs/oauth2-redirect"`) checked alongside `_INFRA_PREFIXES` in
+`_is_actionable`. Same "public plumbing, not module surface" category as
+`/docs`, `/openapi`, `/redoc` — the audit's infra list predated the docs
+move under `/api/` and stopped matching. Exact match, NOT a `/api/docs`
+prefix: the documentation module's real router surface
+(`/api/docs/postman`, `/api/docs/reference`, ...) stays auditable via its
+own contracts in dev.
+
+**Verified against the live mounted surface** under `SEMPTIFY_ENV=production`
+tiers + `SECURITY_MODE=open` (the warning's real conditions — before this
+fix the four docs paths were flagged there): `scan_public_routes` reports
+"all actionable public routes have contract coverage", TOTAL_FLAGGED=0,
+DOCS_FLAGGED=0, both inside `create_app` and on re-scan. `py_compile`
+clean.
+
+**Not done (noted):** the `documentation_public_api_docs` contract in
+`app/modules/documentation/register.py` is now redundant for audit
+purposes (still loads in dev as surface documentation) — left in place,
+harmless.
+
+
+## Session — 2026-11-14 — route_audit: GET-only ops-surface routes now scanned (swe-2, task task-7d44141f)
+
+### Guardrail Engine Run — 2026-11-14T06:00:40+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+**Context:** `_is_actionable` treated every GET-only public route as a
+public-by-design page, so an ad-hoc GET (e.g. `/debug/data-dump`,
+`/storage/db-dump`, `/r/all-tokens`) mounted under a public namespace
+evaded both the runtime audit and `tools/checks/route_audit_check.py`.
+Intake noted the GET exemption was deliberate for *pages*; the promoted
+task scopes the tightening to non-page operational surface only.
+
+**Done:** `app/core/route_audit.py` — GET-only public routes are now
+actionable when the path signals operational surface: first segment in
+`_OPS_FIRST_SEGMENTS` (debug/admin/internal/ops/dev/test/system) or any
+`-`/`_`/`.`-split path token in `_DANGER_TOKENS` (dump/export/backup/
+migrate/seed/schema/token/secret/credential/sql/db/cache/session/logs/
+config/private/passwd/password/raw). Boundaries kept: `.html` paths are
+the documented page class (client-side auth); `/admin/login`,
+`/admin/logout`, `/admin/public-voice` are `_SELF_GUARDED_PATHS` (auth
+inside the route, like `/docs` plumbing). `is_public_path` remains the
+outer gate — non-public routes are out of scope regardless.
+
+**Verified against the live mounted surface** (same env pins as
+route_audit_check): 119 public routes, 0 flags before and after — zero
+new warnings; 10 previously-invisible GET routes (3 ad-hoc `/debug/*`
+in main.py + `/admin/api/*` + `/api/docs*`) now enter the audit and pass
+via contract coverage. 25/25 synthetic-path assertions pass
+(`/storage/db-dump`, `/gui/internal-export`, `/r/all-tokens`,
+`/onboarding/sessions`, `/toolbox/schema`, `/debug/data-dump` →
+actionable; `/donate`, `/tenant/home`, `/gui/dashboard`, `/health`,
+`/status`, `.html` pages → exempt). `route_audit_check.run()` PASSED
+end-to-end; `pytest tests/module_health` 275/275; `py_compile` clean.
+
+**Not done (noted):** `/debug/data-dump` itself still passes coverage
+via the `/debug` contract prefix — the contract owns that namespace;
+tightening per-route review inside covered namespaces is a separate
+decision. `.html` paths remain unaudited by design (client-side auth).
+
+
+## Session — 2026-11-14 — Turnbuchalla CRP rail statutory anchor consistency pass (swe-2, task task-81a93b73)
+
+**Context:** The Title II statutory draft (2026-11-07, counsel item 7) found
+the certificate-of-rent-paid duty's statutory home moved in the 2023
+renter's-credit restructure — ordinary landlords now file under Minn. Stat.
+§ 290.0693, subd. 4; § 290A.19 covers manufactured-home park owners only.
+The live docs invoked a "CRP e-file data rail" without the anchor.
+
+**Done:**
+
+- `BILL_LIVE.md` — M1PR bullet now names § 290.0693, subd. 4 as the rail's
+  statutory home, with the § 290A.19 park-owner-only carve-out noted.
+- `BILL_V2_TITLED_2026-10-24.md` (II-3) — same anchor added; locked-marker
+  line records the 11/14 revisor.mn.gov check.
+- `index.html` — BILLDOC marker block regenerated via `build_platform.py`'s
+  `convert()` on the edited titled draft (verified byte-identical pre-edit,
+  so this repo file is the true generation source); edition line bumped to
+  "as of November 14, 2026" (outside markers, hand-maintained).
+
+**Verified:** § 290.0693 subd. 4 and § 290A.19 text pulled from
+revisor.mn.gov (2026 compilation) on 2026-11-14 — the CRP-to-commissioner
+duty sits in subd. 4(b); § 290A.19 is titled "Park owner to furnish rent
+certificate." `convert()` output diffed clean: only the II-3 fragment changed.
+
+**Not done (case-side registers, noted):** `registers/editions.jsonl` and
+`builds.jsonl` live outside this repo (case-side bill folder) — the editions
+row for this draft edit must be appended there when this change propagates.
+
+## Session — 2026-11-14 — Admin login on prod verified live + honest unavailable state (swe-2, task task-262491a5)
+
+**Context:** intake-830ab9ec observed `/admin/api/login-step1`/`step2` returning
+404 on prod while `/admin/login` rendered a working form. That observation was
+against deploy `be3026ec` (2026-11-05) — it predates PR #340 (`6c5407b0`,
+Brad's 2026-11-11 decision), which allow-listed `admin_auth` + `admin_api`
+routers in the `render_mvp` build.
+
+**Verified live (Render MCP + HTTP probes):** prod currently runs deploy
+`dep-dbqtf6gn` / commit `28fa1f7` (PR #343), which includes #340.
+`POST /admin/api/login-step1` → 401 "Invalid credentials" (mounted, not 404);
+`POST /admin/api/login-step2` → 401; `GET semptify.org/admin/login` → 200 form.
+The backend-unreachable item is resolved on prod — no deploy or env change needed.
+
+**Shipped (residual bug — the "functional-looking form" half):**
+
+- `app/core/admin_gating.py` — new `admin_login_api_mounted(app)` helper
+  (`url_path_for("admin_login_step1")`; works through FastAPI 0.141 lazy
+  `_IncludedRouter` nodes).
+- `app/main.py` `admin_login_page` — when the admin login API is not mounted
+  (allowlist exclusion or skipped optional import), the page now renders an
+  honest 503 "Admin access is not available on this deployment" + link home
+  instead of a form that can only 404 on submit.
+- `tests/test_admin_mvp_mount.py` — 4 tests: MVP allowlist membership,
+  `register_tiers` under `DEPLOY_TARGET=render_mvp` mounts both login
+  endpoints, the mount-check helper, and the real app still serving the form.
+
+**Verified:** py_compile clean; `pytest tests/test_admin_mvp_mount.py
+tests/test_admin_gating.py` 12/12 PASS.
+
+**Not fixed (noted, out of scope):** June-era admin-login checklist items in
+`AI_HANDOFF_PACKET.md` remain stale (elevation flow + render_mvp postdate
+them) — docs-only cleanup, logged via this entry.
+
+## Session — 2026-11-13 — LAN Postgres semptify CREATE grant applied (swe-2, task task-ba85c946)
+
+### Guardrail Engine Run — 2026-11-14T00:34:43+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-14T00:03:27+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+**Done (infra, no code change):** one-time admin `GRANT ALL ON SCHEMA public TO semptify` applied on the CT103 Postgres container (via `ssh pve` → `pct exec 103`, `psql` as `postgres`) for all four `semptify_*` DBs at 10.0.0.106 — `semptify`, `semptify_app`, `semptify_local`, `semptify_pi`. All four are owned by `postgres`, which is why the `semptify` role had USAGE but not CREATE (Postgres 15+ default ACL on `public`).
+
+**Correction to the 2026-10-25 entries below:** "every semptify DB is empty" was wrong — live check found public tables in all four (semptify 11, semptify_app 66, semptify_local 28, semptify_pi 4). The "empty DBs can be dropped by an admin whenever" note is retracted — **do NOT drop those DBs without inspecting contents first**.
+
+**Verified:** `has_schema_privilege('semptify','public','CREATE')` = true in all 4 DBs; over-the-wire psycopg create+drop probe as `semptify` succeeded in all 4. `.env` LAN DATABASE_URL line still commented out — local dev remains on SQLite/Neon per the 2026-10-25 split.
+
 ## Session — 2026-11-12 — Token-storage reality ADR + admin dynamic-IP fix (swe-2)
 
 ### Guardrail Engine Run — 2026-11-23T08:48:11+00:00
@@ -922,7 +1290,7 @@ One or more checks failed — see console output.
 
 **Verified:** py_compile clean; migration verified on scratch SQLite; live boot — both pages 200, submit→store→publish→list loop works end-to-end; banned-words scan of rendered pages clean; `test_ssot_architecture.py` all pass; semptify-local-smoke.js 6/6 (first run had a cold-start timeout on `/` — unrelated to this change, clean on re-run).
 
-**Known infra issue (not introduced here):** local Postgres 10.0.0.106 — every semptify DB is empty and the `semptify` role lacks CREATE on schema public; needs a one-time admin `GRANT ALL ON SCHEMA public TO semptify;`. Parked — local dev uses SQLite, prod is Neon.
+**Known infra issue (not introduced here):** local Postgres 10.0.0.106 — every semptify DB is empty and the `semptify` role lacks CREATE on schema public; needs a one-time admin `GRANT ALL ON SCHEMA public TO semptify;`. Parked — local dev uses SQLite, prod is Neon. *(Resolved 2026-11-13 — grant applied; and the "empty" claim was wrong, see the 2026-11-13 entry at top.)*
 
 **Next session:** build the admin "review & respond" screen for tool requests; collect outside reviews for the Outside Views section; wire /hello into home-page nav if Brad wants it.
 
@@ -930,7 +1298,7 @@ One or more checks failed — see console output.
 - Neon `dev` branch `br-restless-math-an5kb1wa` created off `production` — copy-on-write clone; local dev now runs against a realistic, safe-to-break DB. `.env` `DATABASE_URL` repointed (local-only file, not committed).
 - `alembic upgrade head` run on dev: 20260913_tl_tags → 20261025_tool_requests (all 8 pending migrations applied clean on Postgres).
 - `database.py` root-cause fix committed: `_resolve_db_ssl()` — URL `sslmode` > `DB_SSL_MODE` (now actually wired, was dead config) > host heuristic; self-signed LAN certs encrypt-without-verify instead of crashing.
-- LAN Postgres 10.0.0.106 = legal/private DBs only; its empty `semptify_*` DBs can be dropped by an admin whenever (intake intake-60f8fcde).
+- LAN Postgres 10.0.0.106 = legal/private DBs only; its empty `semptify_*` DBs can be dropped by an admin whenever (intake intake-60f8fcde). *(Wrong on both counts — corrected 2026-11-13: the DBs are NOT empty, do not drop; CREATE grant applied instead.)*
 - Local PC also has Postgres 16 installed but service stopped — unused, leave it.
 
 ---
@@ -16849,6 +17217,15 @@ sessions); embedded images are dropped from edited exports (noted to user).
   `bill-scene-aurora` (night + stone fire ring — campfire belongs to the night
   scene per Brad), `bill-scene-ai`, `bill-scene-alt1/2`. Swap = 1-line `<img>` change.
   Rotation plan logged: `plan-20261031-...-d683` (day/night scheduled swap).
+- **Authenticity audit 2026-11-14** (task-950071e5, checked against the rules
+  below): `bill-scene-alt1` **FAILS** — deer stands mid-lake IN the water.
+  `bill-scene-ai` **FAILS** — deer wades at the shoreline with legs in the
+  water, and a campfire burns directly beside the cabin at porch level (not a
+  stone fire ring on the beach). `bill-scene-alt2` passes (loon dark bill +
+  red eye; fire on beach). `bill-scene-aurora` passes (no deer; fire glow on
+  shoreline, partially cropped at frame edge). `bill-scene-day` stays lead —
+  already Brad-approved. Do NOT wire alt1 or ai into any rotation until
+  regenerated/fixed; that is scene-owner work pending Brad's call.
 - **Brad's authenticity rules learned**: deer drink AT the water's edge on dry
   land, never standing in water; campfires burn in a stone fire ring on the
   beach — never on a porch; loons = dark bill + RED EYES (red bill = merganser,
@@ -17058,3 +17435,218 @@ sessions); embedded images are dropped from edited exports (noted to user).
   this repo — noted in dispatch, unchanged). `verify_exec.db` sqlite
   artifact left in repo root (gitignored `*.db`; file deletion is off
   limits per headless rules).
+
+## 2026-11-13 — Law-library integrity: derived freshness + verification lane (task-f84de546, swe-2)
+
+- **Hardcoded `LAST_VERIFIED_DATE = "2025-01-01"` removed.** The collection-level
+  `last_verified` on `/api/law-library/statutes`, `/statutes/{id}`, and `/links`
+  is now derived at import as the **oldest per-entry verification date** in the
+  library (a collection is only as fresh as its stalest verified source).
+- **Coverage is now 100%.** All 157 entries (119 statutes, 25 cases, 13 court
+  rules) carry `official_url` + `last_verified`, so the /law-library lede claim
+  is mechanically true. Import-time `logger.warning` fires for any future entry
+  whose citation resolves no official source.
+- **Registry fixes (root cause):** federal-appellate pattern now matches dotted
+  circuits (`D.C. Cir.`); new MN appellate docket pattern (`No. A24-0002`);
+  `_usc_url` range citations (`§ 3601-3619`) resolve to the first section while
+  suffix cites (`§ 1715z-1`) stay whole; `_mn_stat_url` handles hyphenated
+  subsections (`336.2A-101`) and section ranges (`§ 513.52-513.60`);
+  CourtListener search URLs are now URL-encoded (were malformed, spaces).
+- **Data fixes:** wrong U.S.C. titles corrected — Housing Trust Fund, Section
+  236, Section 221(d)(3) are Title 12, not 42; `shelter_plus_care` now cites the
+  current Continuum of Care authority (`42 U.S.C. § 11381 et seq.`) with a note
+  that S+C was consolidated in 2012; UCC 2A cite fixed to `§ 336.2A-101 et seq.`
+- **New tool `tools/verify_law_sources.py`** — the build-time re-verification
+  lane (learning-platform design gap #4): fetches every `official_url`, reports
+  live/blocked/dead per entry + per source, exit 1 on any failure. Report-only;
+  date bumps stay human-gated.
+- **First lane run 2026-11-13:** 105/157 links verified live; `last_verified`
+  bumped to 2026-11-13 for Minnesota Revisor, Cornell LII, eCFR, IRS.gov.
+  Remaining 52 are bot-wall 403s (CourtListener/CloudFront, mncourts and
+  municode/Cloudflare, hud.gov) — unverifiable from automation, not dead;
+  logged to intake for a human-browser pass. Suspect case citations flagged
+  separately (intake — possible fabricated reporter numbers).
+- **Verified:** py_compile clean; 8 law-library/linker module tests pass;
+  live fetch 105 OK / 0 dead / 52 bot-walled.
+
+## 2026-11-14 — Render build config drift: Dockerfile pinned + OneDrive env-name fix (task-0bf9280e, swe-2)
+
+- **`Dockerfile` base pinned to `python:3.11.9-slim`** (both `FROM` stages).
+  The Render dashboard builds `./Dockerfile`, which was unpinned
+  `python:3.11-slim` while `Dockerfile.render`/`render.yaml` pinned
+  `3.11.9-slim` — prod ran a floating base. Now whichever file the service
+  builds, the base satisfies the 3.11.9 mandate. Residual: `Dockerfile` and
+  `Dockerfile.render` still differ functionally (tesseract-ocr, fastembed
+  cache bake, `DEPLOY_TARGET` default) — dashboard repoint to
+  `Dockerfile.render` remains Brad's deploy-config call, but is no longer
+  needed for the version mandate.
+- **`NEDRIVE_CLIENT_SECRET` → `ONEDRIVE_CLIENT_SECRET`** in `render.yaml`
+  env list — the app reads `ONEDRIVE_CLIENT_SECRET`
+  (`app/core/config.py`), so the dashboard-synced secret was dead under the
+  typo'd name. NOTE: this fixes the blueprint; the live Render service env
+  var must still be renamed in the dashboard if it was set manually.
+- **Docs synced:** `AGENTS.md`, `SEMPTIFY_SYSTEM_MANIFEST.md`,
+  `docs/SELF_HOST.md` now say `3.11.9-slim`.
+- **Verified:** `render.yaml` parses (26 envVars, `ONEDRIVE_CLIENT_SECRET`
+  present, `NEDRIVE` absent); grep confirms no unpinned `3.11-slim` base
+  remains outside historical log entries. Config-only change — no Python
+  compiled.
+
+## 2026-11-14 — alert() sweep on audit Tier 3-5 pages (task task-a50e9dcd, swe-2)
+
+- **All 27 `alert()` calls removed** from the 11 pages left over from
+  feedback-component-epic (intake-59efdfbb). Replaced with direct
+  `SemptifyFeedback.success/error/info(...)` calls — `feedback.js` loads via
+  `app/templates/base.html` on every Jinja page, so the `else { alert() }`
+  fallback branches were dead code (same end-state timeline.html shipped
+  earlier: "SemptifyFeedback only").
+- **`advocate_client_detail.html`** — 13 `if (window.SemptifyFeedback){...}else{alert(...)}`
+  pairs collapsed to direct calls (review, message, annotate, overlay-delete,
+  review-all paths). **`tenant_my_advocate.html`** — `notify()` helper's alert
+  fallback dropped. **`admin_agent_orchestrator.html`** — import-failure alert
+  → `SemptifyFeedback.error`. **`sticky_notes.html`** — 3 fetch-error alerts →
+  `.error`. **`law_linker_popout.html`** — 2 scratch-pad save errors → `.error`.
+  **`motions.html` / `counterclaim.html` / `roles.html` /
+  `document_delivery_inbox.html` / `document_rejection.html` /
+  `document_signature.html`** — placeholder/`window.alert` calls → `.info`
+  (success for the send-request path).
+- **Verified live** (127.0.0.1:8001, god-mode seed): 9 renderable pages HTTP
+  200 with 0 `alert(` in served HTML + `feedback.js` loaded; browser confirmed
+  `window.SemptifyFeedback` global on `/record/notes` and exercised the real
+  converted path on `/motions` (select type → generate → Download → info toast
+  "Download would begin here for: motion-to-dismiss" rendered). Console clean.
+  `advocate_client_detail` + `admin_agent_orchestrator` unreachable by design —
+  role set excludes the tenant class / `require_admin` (dormant pro surfaces,
+  PR #317); both Jinja-parse clean and inherit the same base-template include.
+- All 11 templates Jinja-parse OK; `py_compile` on `app/main.py`,
+  `app/core/navigation.py` PASS (no Python touched).
+- Out of scope, logged to intake: dead `else alert()` fallbacks in epic pages
+  `auto_mode_panel.html`/`auto_analysis_summary.html` (intake-c079d778);
+  `prompt()`/`confirm()` blocking dialogs family needing a non-blocking modal
+  decision (intake-06103684).
+
+## 2026-11-14 — Bridge Neon divine-sun-29128013 cleanup investigated (task-1bfa44b8, swe-2)
+
+- **Verified live:** org Neon MCP (`org-wandering-recipe-71733955`) lists only
+  `flat-block-24520481` — `divine-sun-29128013` confirmed absent (different
+  account; the org MCP cannot see or manage it). Live DB unchanged:
+  `semptifty_db` sessions still writing (`sessions.last_activity` 2026-11-12),
+  `alembic_version = 20261110_voice_post_flags` = single repo head.
+- **No repo references:** nothing in code, `render.yaml`, or local `.env`
+  points at the bridge — only historical doc mentions. Local `.env`
+  DATABASE_URL still commented out (sqlite dev fallback).
+- **DEPLOYMENT_READINESS.md updated:** 11-14 re-check note added, open item 5
+  rewritten with the verification evidence + a pre-delete check (scan the
+  bridge DB for 10-31-window writes — chiefly `voice_posts` — before
+  deletion), stale `20261026_voice_posts` "current version" pointers bumped
+  to `20261110_voice_post_flags`.
+- **Outcome:** `blocked_on_decision` — the delete-or-keep call and any
+  deletion require Brad's login to the other Neon account's console; no
+  agent-side path exists.
+
+## 2026-11-14 — /ws/events dev-server console noise + unsigned-cookie auth gap (task-5a84f297, swe-2)
+
+- **Root cause:** `websocket_events` called `websocket.close(1008)` *before* `accept()` — a rejected handshake (HTTP 403) delivers no close code, so browsers showed an unsuppressable console error and the client's `code === 1008` no-retry guard never fired (close arrives as 1006 → 5 retry attempts → spam on every page load).
+- **Fix (server, `app/modules/websocket/router.py`):** `accept()` then `close(1008)` so the close frame actually reaches the client; `get_user_id_from_websocket` now runs the cookie through `cookie_auth.verify_user_id` (HMAC) instead of trusting the raw value — previously ANY string shaped like a uid connected (unsigned `GUbGQUTpK6` verified open), and the signed blob `uid.sig` — not the uid — keyed `ws_manager`/`event_bus`/`user_jobs:` topics, silently breaking notification routing vs. raw-uid publishers.
+- **Fix (client, `static/js/core/websocket-client.js`):** `everConnected` flag — reconnects only schedule after a socket that actually opened; a refused handshake is a refused connection, not a dropped one.
+- **Verified live (127.0.0.1:8001, venv311):** probe — no-cookie/unsigned/forged/bad-sig all get clean close 1008 "Authentication required" (previously unsigned connected / 403-rejected); signed seed uid opens + receives welcome. IronBee browser — bogus-cookie reconnect path: console shows only `log`-level `[WebSocket] Connected`/`Closed 1008`, ZERO errors/warnings, `getReconnectAttempts()=0`; seeded-cookie path connects and stays open. py_compile + `node --check` pass.
+- **Intake:** `intake-34071517` — brain module `/ws` endpoint accepts connections with no auth check at all (DEV tier, dormant).
+
+## 2026-11-14 — Duplicate FastAPI operation IDs on every /api/dc route (task-59df41bf, swe-2)
+
+- **Root cause:** FastAPI 0.141 made `include_router` lazy — `app.routes` holds
+  `_IncludedRouter` proxy nodes, not materialized APIRoutes, so the
+  `already_mounted` guard in `create_app()` (which scanned `route.path` for
+  "/api/dc") could never see the manifest's `/api/dc` mount and re-included
+  the Document Center router a second time. All 15 `dc_*` endpoints emitted
+  "Duplicate Operation ID" warnings on every openapi schema build.
+- **Fix (`app/main.py`):** `_router_already_included()` helper matches the
+  included router object + mount prefix via `include_context`
+  (`included_router`/`prefix`) for lazy nodes, keeping the `.path` scan as
+  fallback for materialized routes. Applied to both the `/api/dc` and
+  `/api/dc/intake` mount guards.
+- **Verified:** before — 15 `dc_*` duplicate-op warnings on `app.openapi()`;
+  after — zero. Exactly one `_IncludedRouter` each at `/api/dc` and
+  `/api/dc/intake`. `py_compile` pass; 30/30 `test_dc_smoke.py` pass
+  (module pytest exits 1 only on the repo-wide 30% coverage floor for a
+  subset run — unrelated).
+- **Intake:** `intake-9f21aa42` — same duplicate-op-ID class on
+  `law_library_page` (page route, low); `intake-c3324e71` —
+  `/api/dc/intake/*` never mounted under `render_mvp`/lazy-routers deploys
+  (intake_router absent from product_manifest; mount block skipped when
+  lazy, medium).
+
+## 2026-11-14 — Legal-UI slice 2: invite/consent + revocation verified live (task legal-ui-slice2-invite-consent, swe-2)
+
+- **Every actionable matrix row verified PASS live** on `127.0.0.1:8010`
+  (sqlite dev instance, seeded tenant `GUbGQUTpK6` + helper `GUAdvSlice02`):
+  G1.1–G1.2, G2.1–G2.8, G3.3 (API half), G3.9. Row-by-row evidence:
+  `C:\master-repo\handoffs\legal-ui-slice2-invite-consent-report.md`.
+- **Bug fixed (in scope — invite flow):** `tenant_my_advocate.html`
+  `getCurrentUserId()` read cookie `semptify_user_id`, which does not exist —
+  the auth cookie is `semptify_uid` and holds `<uid>.<hmac>`. "Share Your ID"
+  always showed "Not signed in", breaking the tenant→advocate hand-off step.
+  Now reads `semptify_uid` and strips the signature for display.
+- **invite_codes 500s (intake-1332cbb8):** already fixed at commit aaabdea6 —
+  confirmed live: `/api/invite-codes/validate` + `/redeem` return clean
+  200/400 results for valid, expired, spent, bogus, and double-redeem cases;
+  zero 500s. Org-side management endpoints (`/create`, `/list`, `/{code}/stats`,
+  DELETE) correctly 403 for all real users — manager/admin roles don't exist
+  under solo identity (dormant with the rest of the pro-role surface).
+- **UI verified at 1280px + 375px** (IronBee): scope picker + per-document
+  picker with privileged flags, bogus-ID error toast, pending row with
+  cancel, advocate-side Approve/Decline on the same page (solo identity
+  serves both directions), access log in plain language, console clean.
+- **Pytest:** `tests/test_advocate_sharing.py` 11/11 PASS (~9 min — conftest
+  rebuilds app+DB per test, not a hang).
+- **Dormant-gated, reported not failed:** G2.5 (non-advocate rejection is
+  moot under solo identity — every user can hold a share; consent sits with
+  the recipient) and G3.3 page-degrade half + advocate-side client pages
+  (pending task-b02e2f89; page routes redirect tenants home).
+- **Intake:** `intake-0a2b4733` — `invite_codes` custom_code stored verbatim
+  but normalized differently at validate; non-canonical custom codes are
+  unredeemable (low).
+
+## 2026-11-18 — ADR-0011: user data lives in the user's OAuth storage (task plan-20261118-architecture-semptify-user-data-lives-in-a2f8, swe-2)
+
+- **Recorded Brad's architecture decision as `docs/adr/0011-user-data-oauth-storage-link-layer.md`:**
+  Semptify user data lives in each user's OAuth storage — for
+  browser/standalone modules the contract is Drive `appDataFolder` +
+  `semptify.<module>.<collection>.json` (one JSON array per file), and the
+  user's own Drive is the linking layer between modules.
+  `modules/app-crm/src/lib/driveStore.ts` + `docs/OAUTH-STORAGE.md` is the
+  reference implementation; Brad's setup stays god-mode/local
+  (`dev-godmode-token` → `LocalDiskProvider`) as declared carve-out.
+- **Relationship recorded in the ADR:** complements ADR-0001 (provider-split
+  `Semptify5.0` vault stays the document pipeline) and ADR-0010 (token
+  storage unchanged — this ADR covers user data, not tokens).
+- **Verified:** `driveStore.ts` is the only `appDataFolder`/`drive.appdata`
+  implementation across `modules/` + `semptify-bill-mirror/` (repo-wide
+  grep) — ADR is descriptive for app-crm, prescriptive for future modules.
+- **Also updated:** `docs/doc-map.yaml` (adr entry for 0011),
+  `REQUIRED_READING.md` (ADR range 0001–0009 → 0001–0011 — was already
+  stale at 0010).
+- **Intake:** doc-map.yaml is missing entries for ADRs 0008/0009/0010
+  (staleness check never sees them).
+
+## 2026-11-19 — brain /ws websocket auth gate (task task-2780b090, swe-2)
+
+- **Fixed:** `app/modules/brain/router.py` `@router.websocket("/ws")`
+  accepted connections with zero auth — any client could connect and
+  receive all brain events, push state updates, and trigger workflows.
+  Now gated identically to `/ws/events` (`app/modules/websocket/router.py`):
+  `verify_user_id(semptify_uid)` HMAC check + `is_valid_user_storage`,
+  else `accept()` + `close(1008)` (accept-first so the 1008 reaches the
+  client as a real close frame, not a rejected handshake).
+- **Context:** brain router is dormant — its `_register()` in
+  `product_manifest.py` is commented out (deprecated 2026-07-04), so the
+  hole was latent, not live. Fix prevents it becoming a live
+  unauthenticated WS surface if the module is ever re-registered.
+- **Tests:** `tests/test_websocket.py` `TestBrainWebSocket` — existing 5
+  tests now authenticate via `sign_user_id("GUBRAIN12345")` (helper
+  `_authed_ws()`); added `test_brain_websocket_requires_auth` asserting
+  cookieless connections close 1008 with no state sent. 6 passed,
+  2 skipped (disabled REST endpoints).
+- **Intake:** `intake-370dde1d` — brain REST endpoints also have zero
+  auth_gate (medium, dormant); `intake-00b783ad` — `TestWebSocketEvents`
+  tests stale, unsigned cookies vs `verify_user_id` (low, pre-existing).

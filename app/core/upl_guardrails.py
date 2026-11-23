@@ -121,7 +121,7 @@ UPL_DISCLAIMER_LONG: str = (
     "or your local legal aid society."
 )
 """Long canonical notice. Used in page banners, footers, and about/help pages.
-Matches the wording already shipped in public_base.html, about.html, complaints.html."""
+Matches the wording already shipped in public/disclaimer.html, about.html, complaints.html."""
 
 
 # ---------------------------------------------------------------------------

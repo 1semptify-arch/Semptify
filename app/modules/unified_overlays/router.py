@@ -6,13 +6,13 @@ API endpoints for the unified overlay system.
 All endpoints are stateless - overlays stored in user's cloud storage only.
 """
 
-from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.overlay_types import OverlayType
-from app.core.security import StorageUser, verify_function_token_for_operation, yellow_access
+from app.core.security import StorageUser, yellow_access
 from app.models.unified_overlay_models import (
     CreateOverlayRequest,
     CreateOverlayResponse,
@@ -26,62 +26,6 @@ from app.services.unified_overlay_manager import (
 )
 
 router = APIRouter(prefix="/api/unified-overlays", tags=["Unified Overlays"])
-
-
-# =============================================================================
-# Authentication Helper
-# =============================================================================
-
-
-async def require_overlay_access(
-    request: Request,
-    document_id: str | None = None,
-    function_token_header: str | None = Header(None, alias="X-Function-Token"),
-    semptify_uid: str | None = Cookie(None),
-) -> tuple[str, str, str | None]:
-    """
-    Require both auth cookie identity and valid function token.
-
-    Returns: (user_id, role, token)
-    """
-    if not semptify_uid:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication cookie required",
-        )
-
-    token = function_token_header
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Function token required",
-        )
-
-    action = "overlay:read" if request.method in {"GET", "HEAD", "OPTIONS"} else "overlay:write"
-    token_result = verify_function_token_for_operation(
-        semptify_uid,
-        token,
-        action=action,
-        document_id=document_id,
-        refresh=False,
-    )
-
-    if not token_result.get("valid"):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={
-                "error": "function_token_invalid",
-                "reason": token_result.get("reason", "invalid"),
-                "message": "Function token invalid or expired",
-            },
-        )
-
-    # Get role from user_id
-    from app.core.user_id import get_role_from_user_id
-
-    role = get_role_from_user_id(semptify_uid) or "user"
-
-    return semptify_uid, role, token
 
 
 async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Settings):
@@ -118,14 +62,6 @@ async def create_overlay(
 
     The overlay is stored in user's cloud storage, not on Semptify servers.
     """
-    # Verify user has access to the document
-    auth_user_id, _, _ = await require_overlay_access(
-        Request(scope={"type": "http"}),
-        document_id=request.document_id,
-        function_token_header=None,
-        semptify_uid=user.user_id,
-    )
-
     storage = await get_storage_client(user, db, settings)
     manager = await get_unified_overlay_manager(storage, user.user_id)
 

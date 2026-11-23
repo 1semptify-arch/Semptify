@@ -25,6 +25,14 @@ Route layout:
   Mounted at root (pages_router, no prefix):
     GET  /legal-share                                      — tenant share-management page
     GET  /r/{token}                                        — anonymous reviewer page
+
+  Gated release + custody (matrix G9), mounted at /api/legal-share:
+    GET  /release/documents                                — tenant's releasable documents
+    GET  /release/documents/{doc_id}/integrity             — intake vs recomputed hash + releases
+    POST /release/documents/{doc_id}/release               — gated release → NEW artifact
+    GET  /release/documents/{doc_id}/releases              — release records for a document
+    GET  /release/documents/{doc_id}/releases/{rid}/download — fetch a released bundle
+    GET  /release/documents/{doc_id}/custody-log           — chronological custody (downloadable)
 """
 
 from __future__ import annotations
@@ -33,7 +41,7 @@ import logging
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -41,10 +49,11 @@ from app.core.capabilities import grant_capability
 from app.core.database import get_db
 from app.core.event_bus import EventType, event_bus
 from app.core.request_utils import get_request_user_id
-from app.core.security import StorageUser, yellow_access
+from app.core.security import StorageUser, get_current_user, get_rate_limiter, yellow_access
+from app.core.user_context import UserContext, get_role_from_user_id
 from app.core.utc import utc_now
 from app.modules.case_review import service as case_review_service
-from app.modules.legal_share import service
+from app.modules.legal_share import release_service, service
 from app.services.incident_store import list_incidents
 
 logger = logging.getLogger(__name__)
@@ -67,6 +76,7 @@ class ShareCreateRequest(BaseModel):
     case_id: int
     reviewer_label: str = Field(min_length=1, max_length=120)
     reviewer_contact: str | None = Field(default=None, max_length=200)
+    tenant_message: str | None = Field(default=None, max_length=2000)
     document_ids: list[str] = Field(default_factory=list, max_length=500)
     include_notes: bool = True
     deadline_ids: list[str] = Field(default_factory=list, max_length=200)
@@ -92,16 +102,33 @@ class MessageRequest(BaseModel):
 
 
 async def _gate(request: Request) -> tuple:
-    """Resolve path token → (share view, owner context). Raises for inactive."""
+    """Resolve path token → (share view, owner context). Raises for inactive.
+
+    Failed-token lookups are throttled per source IP: the token lives in the
+    URL path, so path-keyed limits could never throttle guessing. Successful
+    resolutions are not counted.
+    """
     token = request.path_params.get("token", "")
     resolved = await service.resolve_share_with_owner(token)
+    err = None
     if not resolved:
-        raise HTTPException(status_code=404, detail={"error": "share_not_found"})
-    share, owner = resolved
-    if share.status == service.STATUS_REVOKED:
-        raise HTTPException(status_code=410, detail={"error": "share_revoked"})
-    if share.status == service.STATUS_EXPIRED:
-        raise HTTPException(status_code=410, detail={"error": "share_expired"})
+        err = (404, "share_not_found")
+    else:
+        share, owner = resolved
+        if share.status == service.STATUS_REVOKED:
+            err = (410, "share_revoked")
+        elif share.status == service.STATUS_EXPIRED:
+            err = (410, "share_expired")
+    if err is not None:
+        ip = request.client.host if request.client else "unknown"
+        allowed, retry_after = get_rate_limiter().check(f"share_guess:{ip}", 60, 30)
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail={"error": "rate_limited"},
+                headers={"Retry-After": str(retry_after)},
+            )
+        raise HTTPException(status_code=err[0], detail={"error": err[1]})
     return share, owner
 
 
@@ -112,6 +139,7 @@ def _share_json(share, unread: int = 0) -> dict:
         "case_title": share.case_title,
         "reviewer_label": share.reviewer_label,
         "reviewer_contact": share.reviewer_contact,
+        "tenant_message": share.tenant_message,
         "documents": share.documents,
         "include_notes": share.include_notes,
         "include_summary": share.include_summary,
@@ -241,7 +269,13 @@ async def ls_create_share(
         for vid in doc_ids:
             doc = await vault_service.get_document(vid)
             if doc is None or doc.user_id != user.user_id:
-                raise HTTPException(status_code=404, detail=f"Document not found: {vid}")
+                # G5.8 — never echo vault ids or paths in error text, even to
+                # the owner. One generic message covers not-found + not-yours.
+                raise HTTPException(
+                    status_code=404,
+                    detail={"error": "document_not_found",
+                            "message": "One of the selected documents could not be found in your vault."},
+                )
             docs.append({"id": vid, "name": doc.filename or doc.safe_filename})
     except HTTPException:
         raise
@@ -273,6 +307,7 @@ async def ls_create_share(
         case_title=incident.title,
         reviewer_label=body.reviewer_label,
         reviewer_contact=body.reviewer_contact,
+        tenant_message=body.tenant_message,
         documents=docs,
         include_notes=body.include_notes,
         deadlines=deadlines,
@@ -420,6 +455,7 @@ async def rs_bundle(token: str, request: Request):
     return {
         "status": share.status,
         "reviewer_label": share.reviewer_label,
+        "message": share.tenant_message,
         "expires_at": share.expires_at.isoformat() if share.expires_at else None,
         "summary": summary,
         "documents": documents,
@@ -513,6 +549,222 @@ async def rs_followup(token: str, thread_id: str, body: MessageRequest, request:
         {"user_id": owner.user_id, "share_id": share.id, "thread_id": thread_id},
     )
     return _thread_public(thread)
+
+
+# =============================================================================
+# Gated release + custody (matrix G9.1–G9.6)
+# =============================================================================
+# These endpoints use get_current_user (not yellow_access) so the deny path is
+# reachable and auditable: a linked advocate's release attempt gets an explicit
+# logged 403 — never a silent failure — while anyone without a relationship
+# gets the same 404 as a nonexistent document.
+# =============================================================================
+
+
+def _release_auth(user: UserContext | None) -> UserContext:
+    if user is None:
+        raise HTTPException(status_code=401, detail={"error": "not_signed_in"})
+    return user
+
+
+async def _deny_log(db: AsyncSession, actor_id: str, tenant_id: str, doc_id: str, detail: str) -> None:
+    """Append-only audit row for a denied release attempt (G9.4)."""
+    from app.models.models import DocumentAccessLog
+
+    role = get_role_from_user_id(actor_id)
+    db.add(
+        DocumentAccessLog(
+            actor_user_id=actor_id,
+            actor_role=role.value if role else None,
+            tenant_user_id=tenant_id,
+            document_id=doc_id,
+            action="release_denied",
+            outcome="denied",
+            detail=detail[:500],
+        )
+    )
+    await db.commit()
+
+
+async def _resolve_for_owner(user: UserContext, doc_id: str, db: AsyncSession):
+    """Resolve a document for read-only surfaces. Owner-only — non-owners get
+    the same 404 as unknown ids so the surface leaks nothing."""
+    ref = await release_service.resolve_document(user, doc_id, db)
+    if ref is None or ref.owner_user_id != user.user_id:
+        raise HTTPException(status_code=404, detail={"error": "document_not_found"})
+    return ref
+
+
+async def _resolve_for_release(user: UserContext, doc_id: str, db: AsyncSession):
+    """Ownership gate for the gated release. A linked advocate gets an
+    explicit, logged denial (the release is the owner's act — never silent);
+    anyone else gets the plain 404."""
+    from sqlalchemy import select
+
+    from app.models.models import RelationshipType, UserRelationship
+
+    ref = await release_service.resolve_document(user, doc_id, db)
+    if ref is None:
+        raise HTTPException(status_code=404, detail={"error": "document_not_found"})
+    if ref.owner_user_id == user.user_id:
+        return ref
+
+    result = await db.execute(
+        select(UserRelationship).where(
+            UserRelationship.from_user_id == user.user_id,
+            UserRelationship.to_user_id == ref.owner_user_id,
+            UserRelationship.relationship_type == RelationshipType.ADVOCACY.value,
+            UserRelationship.is_active.is_(True),
+        )
+    )
+    if result.scalars().first() is not None:
+        await _deny_log(
+            db,
+            user.user_id,
+            ref.owner_user_id,
+            ref.canonical_id,
+            "Only the document owner can release a copy.",
+        )
+        logger.info("Release denied for advocate %s on doc %s (owner %s)", user.user_id, ref.canonical_id, ref.owner_user_id)
+        raise HTTPException(
+            status_code=403,
+            detail={"error": "release_denied", "message": "Only the document owner can release a copy."},
+        )
+    raise HTTPException(status_code=404, detail={"error": "document_not_found"})
+
+
+@router.get("/release/documents")
+async def ls_release_documents(
+    user: UserContext | None = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Tenant's releasable documents — the release picker's list."""
+    user = _release_auth(user)
+    docs = await release_service.list_owner_documents(user, db)
+    return {
+        "documents": [
+            {
+                "id": d.canonical_id,
+                "name": d.filename,
+                "sha256_hash": d.sha256_recorded,
+                "mime_type": d.mime_type,
+                "uploaded_at": d.uploaded_at.isoformat() if d.uploaded_at else None,
+            }
+            for d in docs
+        ]
+    }
+
+
+@router.get("/release/documents/{doc_id}/integrity")
+async def ls_release_integrity(
+    doc_id: str,
+    user: UserContext | None = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Hash lifecycle for one document: intake hash, live recomputed hash,
+    every release (artifact hash + timestamp + certificate traveling
+    together), and the custody log — G9.5 + G9.6 in one honest surface."""
+    user = _release_auth(user)
+    ref = await _resolve_for_owner(user, doc_id, db)
+    return await release_service.integrity_status(user, ref, db)
+
+
+@router.get("/release/documents/{doc_id}/custody-log")
+async def ls_release_custody_log(
+    doc_id: str,
+    download: bool = False,
+    user: UserContext | None = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Chronological per-document custody log — intake, cross-party views,
+    annotates, shares, releases, denied attempts. ``?download=1`` returns it
+    as a JSON attachment for handing to a reviewer or court."""
+    user = _release_auth(user)
+    ref = await _resolve_for_owner(user, doc_id, db)
+    events = await release_service.build_custody_log(user, ref, db)
+    body = {
+        "document_id": ref.canonical_id,
+        "filename": ref.filename,
+        "sha256": ref.sha256_recorded,
+        "generated_at": utc_now().isoformat(),
+        "events": events,
+    }
+    if download:
+        import json
+
+        return Response(
+            content=json.dumps(body, indent=2, default=str),
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f'attachment; filename="custody-log-{ref.canonical_id}.json"'
+            },
+        )
+    return body
+
+
+@router.post("/release/documents/{doc_id}/release")
+async def ls_release_create(
+    doc_id: str,
+    user: UserContext | None = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """The gated release — the ONE way marked-up state becomes a concrete
+    artifact. Produces a NEW bundle under Vault/releases/: original bytes
+    (untouched), certificate (hash + timestamp + signature), legend, overlay
+    snapshot, custody log. The original file is never written."""
+    user = _release_auth(user)
+    ref = await _resolve_for_release(user, doc_id, db)
+    if not user.access_token or user.access_token == "no-token":
+        raise HTTPException(
+            status_code=503,
+            detail={"error": "storage_unavailable", "message": "Your storage connection needs reconnecting before a release can be made."},
+        )
+    try:
+        record = await release_service.release_document(user, ref, db)
+    except RuntimeError as exc:
+        if str(exc).startswith("document_bytes_unavailable"):
+            raise HTTPException(
+                status_code=502,
+                detail={"error": "document_bytes_unavailable", "message": "The file couldn't be read just now — nothing was released."},
+            ) from exc
+        logger.error("Release failed for doc %s: %s", ref.canonical_id, exc)
+        raise HTTPException(status_code=500, detail={"error": "release_failed"}) from exc
+    return {"release": record}
+
+
+@router.get("/release/documents/{doc_id}/releases")
+async def ls_release_list(
+    doc_id: str,
+    user: UserContext | None = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Every release of this document — hash, timestamp, and certificate
+    travel together in each record."""
+    user = _release_auth(user)
+    ref = await _resolve_for_owner(user, doc_id, db)
+    return {"releases": await release_service.list_releases(user, ref)}
+
+
+@router.get("/release/documents/{doc_id}/releases/{release_id}/download")
+async def ls_release_download(
+    doc_id: str,
+    release_id: str,
+    user: UserContext | None = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Fetch a released bundle (the artifact itself — a new file, never the
+    original)."""
+    user = _release_auth(user)
+    ref = await _resolve_for_owner(user, doc_id, db)
+    found = await release_service.fetch_release_artifact(user, ref, release_id)
+    if found is None:
+        raise HTTPException(status_code=404, detail={"error": "release_not_found"})
+    data, filename = found
+    return Response(
+        content=data,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 # =============================================================================

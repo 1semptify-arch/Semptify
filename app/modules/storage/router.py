@@ -100,12 +100,12 @@ OAUTH_CONFIGS = {
 
 OAUTH_STATE_TIMEOUT_MINUTES = 15  # OAuth state TTL in minutes
 
-# ONBOARDING SOLO (Brad, 2026-09-23): tenant is the ONLY role in this repo.
-# OAuth can only ever MINT tenant accounts, and the /role switch accepts
-# only tenant/user — there is no invite code, PIN, or parameter that opens
-# another role here. Professional-role accounts belong to a separate add-on
-# (different repo), networked later.
-MINTABLE_ROLES = {"tenant", "user"}
+# ROLE REVIVAL (Brad, 2026-11-19 — task-b02e2f89): professional roles return
+# alongside tenant. /storage/connect?role= may mint tenant, advocate, or legal
+# — the client-facing professional roles that G7 workspaces and ADVOCACY
+# relationships need. 'admin' is deliberately NOT mintable through OAuth: it
+# is ops-level access, minted server-side only (never via a URL parameter).
+MINTABLE_ROLES = {"tenant", "user", "advocate", "legal"}
 
 # In-memory session cache for transitional compatibility (primary sessions are in DB)
 SESSIONS: dict = {}

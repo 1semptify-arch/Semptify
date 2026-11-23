@@ -29,6 +29,7 @@ on every card so users know the freshness of each link.
 import html
 import logging
 import re
+import urllib.parse
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -48,10 +49,17 @@ class LawSource:
 
 def _mn_stat_url(citation: str) -> str:
     """Build revisor.mn.gov URL from Minn. Stat. citation."""
-    # Extract the chapter.section, e.g. "504B.321" from "Minn. Stat. § 504B.321" or "Minn. Stat. Sec. 504B.321"
-    m = re.search(r"(\d+[A-Z]?\.\d+[\w.]*)", citation)
+    # Extract the chapter.section, e.g. "504B.321" from "Minn. Stat. § 504B.321"
+    # or "Minn. Stat. Sec. 504B.321"; hyphenated subsections like "336.2A-101"
+    # must be captured whole or the cite URL 404s.
+    m = re.search(r"(\d+[A-Z]?\.\d+[\w.\-]*)", citation)
     if m:
-        return f"https://www.revisor.mn.gov/statutes/cite/{m.group(1)}"
+        cite = m.group(1)
+        # A range like "513.52-513.60" is two section cites joined by a dash —
+        # cite the first section. A subsection suffix like "336.2A-101" has no
+        # chapter dot after the dash and stays whole.
+        cite = re.sub(r"-(?=\d+[A-Z]?\.\d).*", "", cite)
+        return f"https://www.revisor.mn.gov/statutes/cite/{cite}"
     return "https://www.revisor.mn.gov/statutes/"
 
 
@@ -70,12 +78,17 @@ def _mn_stat_chapter_url(citation: str) -> str:
 
 def _usc_url(citation: str) -> str:
     """Build Cornell LII URL for U.S. Code citations."""
-    # e.g. "42 U.S.C. § 3601-3619" -> 42/3601
+    # e.g. "42 U.S.C. § 3601-3619" -> 42/3601 (ranges resolve to first section)
     # e.g. "42 U.S.C. § 1437f" -> 42/1437f
     # e.g. "42 U.S.C. § 1437f note" -> 42/1437f
     m = re.search(r"(\d+)\s*U\.?S\.?C\.?\s*[§\s]*(\d+[a-zA-Z]*(?:-[0-9a-zA-Z]+)?)(?:\s+note)?", citation)
     if m:
         title, section = m.group(1), m.group(2)
+        # A range like "3601-3619" is two section numbers and not a servable
+        # path — cite the first section. A short suffix ("1715z-1", "1701j-3")
+        # is part of one section number and must be kept whole.
+        if re.fullmatch(r"\d+-\d{3,}[a-zA-Z]*", section):
+            section = section.split("-")[0]
         return f"https://www.law.cornell.edu/uscode/text/{title}/{section}"
     return "https://www.law.cornell.edu/uscode/text"
 
@@ -115,25 +128,30 @@ def _hennepin_url(citation: str) -> str:
     return "https://www.hennepin.us/property-tax"
 
 
+def _courtlistener_search(query: str) -> str:
+    """Build a URL-encoded CourtListener opinion-search URL."""
+    return f"https://www.courtlistener.com/?q=%22{urllib.parse.quote(query)}%22&type=o"
+
+
 def _scotus_url(citation: str) -> str:
     """Build CourtListener URL for US Supreme Court citations."""
     # e.g. "576 U.S. 519 (2015)" -> courtlistener.com
     m = re.search(r"(\d+)\s*U\.?S\.?\s*(\d+)", citation)
     if m:
-        return f"https://www.courtlistener.com/?q=%22{m.group(0)}%22&type=o"
+        return _courtlistener_search(m.group(0))
     return "https://www.supremecourt.gov/opinions/opinions.html"
 
 
 def _federal_appellate_url(citation: str) -> str:
     """Build CourtListener URL for federal appellate citations."""
     # e.g. "343 F.3d 1143 (9th Cir. 2003)"
-    return f"https://www.courtlistener.com/?q=%22{citation}%22&type=o"
+    return _courtlistener_search(citation)
 
 
 def _mn_case_url(citation: str) -> str:
     """Build Minnesota case law URL."""
     # e.g. "298 Minn. 54, 213 N.W.2d 339 (1973)"
-    return f"https://www.courtlistener.com/?q=%22{citation}%22&type=o"
+    return _courtlistener_search(citation)
 
 
 def _hud_url(citation: str) -> str:
@@ -154,7 +172,21 @@ def _hud_notice_url(citation: str) -> str:
 
 def _westlaw_courtlistener_url(citation: str) -> str:
     """Build a CourtListener search URL for loose / Westlaw-style case citations."""
-    return f"https://www.courtlistener.com/?q=%22{citation}%22&type=o"
+    return _courtlistener_search(citation)
+
+
+def _mn_docket_url(citation: str) -> str:
+    """Build a CourtListener search URL for Minnesota appellate docket numbers
+    (e.g. 'No. A24-0002 (Minn. Ct. App. Sept. 30, 2024)')."""
+    m = re.search(r"A\d{2}-\d{4}", citation)
+    return _courtlistener_search(m.group(0) if m else citation)
+
+
+def _state_case_url(citation: str) -> str:
+    """Build a CourtListener search URL for non-MN state reporter citations
+    (e.g. '144 Vt. 150, 478 A.2d 202 (1984)' -> searches '144 Vt. 150')."""
+    m = re.search(r"\d+\s*[A-Z][\w.]*\s+\d+", citation)
+    return _courtlistener_search(m.group(0) if m else citation)
 
 
 # =============================================================================
@@ -255,27 +287,27 @@ REGISTRY: list[tuple[re.Pattern, LawSource]] = [
     # Minnesota Statutes — section level (e.g. § 504B.321, Sec. 504B.321, Section 504B.321)
     (
         re.compile(r"Minn\.?\s*Stat\.?\s*(?:§|Sec\.?|Section)?\s*\d+[A-Z]?\.\d+", re.IGNORECASE),
-        LawSource("Minnesota Revisor of Statutes", _mn_stat_url, "2026-01-15", "state"),
+        LawSource("Minnesota Revisor of Statutes", _mn_stat_url, "2026-11-13", "state"),
     ),
     # Minnesota Statutes — chapter level (e.g. § 504B, Sec. 504, Section 580)
     (
         re.compile(r"Minn\.?\s*Stat\.?\s*(?:§|Sec\.?|Section)?\s*\d+[A-Z]?(?:\s|;|$)", re.IGNORECASE),
-        LawSource("Minnesota Revisor of Statutes", _mn_stat_chapter_url, "2026-01-15", "state"),
+        LawSource("Minnesota Revisor of Statutes", _mn_stat_chapter_url, "2026-11-13", "state"),
     ),
     # US Code
     (
         re.compile(r"\d+\s*U\.?S\.?C\.?", re.IGNORECASE),
-        LawSource("Cornell LII (U.S. Code)", _usc_url, "2026-01-15", "federal"),
+        LawSource("Cornell LII (U.S. Code)", _usc_url, "2026-11-13", "federal"),
     ),
     # Code of Federal Regulations
     (
         re.compile(r"\d+\s*C\.?F\.?R\.?", re.IGNORECASE),
-        LawSource("eCFR (Electronic CFR)", _cfr_url, "2026-01-15", "federal"),
+        LawSource("eCFR (Electronic CFR)", _cfr_url, "2026-11-13", "federal"),
     ),
     # IRS Publications
     (
         re.compile(r"IRS\s*Publication\s*\d+", re.IGNORECASE),
-        LawSource("IRS.gov", _irs_pub_url, "2026-01-15", "federal"),
+        LawSource("IRS.gov", _irs_pub_url, "2026-11-13", "federal"),
     ),
     # Minneapolis Code
     (
@@ -299,9 +331,9 @@ REGISTRY: list[tuple[re.Pattern, LawSource]] = [
         re.compile(r"\d+\s*U\.?S\.?\s*\d+\s*\(\d{4}\)", re.IGNORECASE),
         LawSource("CourtListener (SCOTUS)", _scotus_url, "2026-01-15", "federal"),
     ),
-    # Federal appellate
+    # Federal appellate — circuit abbreviations may contain dots (D.C. Cir., Fed. Cir.)
     (
-        re.compile(r"\d+\s*F\.\w*\s*\d+\s*\(\w+\s*Cir\.\s*\d{4}\)", re.IGNORECASE),
+        re.compile(r"\d+\s*F\.\w*\s*\d+\s*\([\w.]+\s*Cir\.\s*\d{4}\)", re.IGNORECASE),
         LawSource("CourtListener (Federal Appeals)", _federal_appellate_url, "2026-01-15", "federal"),
     ),
     # Federal district
@@ -317,6 +349,17 @@ REGISTRY: list[tuple[re.Pattern, LawSource]] = [
     (
         re.compile(r"\d+\s*N\.?W\.?\w*\s*\d+\s*\(", re.IGNORECASE),
         LawSource("CourtListener (MN Cases)", _mn_case_url, "2026-01-15", "state"),
+    ),
+    # Minnesota appellate docket-number citations (e.g. "No. A24-0002 (Minn. Ct. App. ...)")
+    (
+        re.compile(r"\bA\d{2}-\d{4}\b"),
+        LawSource("CourtListener (MN Cases)", _mn_docket_url, "2026-01-15", "state"),
+    ),
+    # Other state reporters — Atlantic / Vermont reporter (e.g. "144 Vt. 150,
+    # 478 A.2d 202 (1984)"). Keep scoped: unlisted reporters log a warning.
+    (
+        re.compile(r"\d+\s*Vt\.?\s*\d+|\d+\s*A\.\dd\s*\d+", re.IGNORECASE),
+        LawSource("CourtListener (State Cases)", _state_case_url, "2026-11-18", "state"),
     ),
     # HUD / FHEO guidance notices (e.g. "HUD FHEO Notice 2020-01")
     (

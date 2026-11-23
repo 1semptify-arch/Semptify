@@ -8,7 +8,7 @@
 - `ACTIVE_CONTEXT.md` — what is being worked on right now and open decisions.
 - `BACKLOG.md` — new ideas, gaps, parked items, and future work at whatever stage it is in.
 
-**Status tags:** `[considering]` → `[evaluated]` (passed scope/responsibility review) → `[accepted]` (has an ADR) → `[building]` → `[done]` → `[watching, not building]` → `[rejected]`
+**Status tags:** `[considering]` → `[evaluated]` (passed scope/responsibility review — the checklist this tag refers to was undocumented until 2026-11-14; canonical doc is `docs/admin/SCOPE_EVALUATION_CHECKLIST.md`) → `[accepted]` (has an ADR) → `[building]` → `[done]` → `[watching, not building]` → `[rejected]`
 
 ---
 
@@ -24,7 +24,7 @@
 - `[considering]` Housing Discrimination Recorder — Tier 1.
 - `[considering]` Algorithmic Screening Denial Assistant — Tier 2.
 - `[considering]` Rent Increase Context Tool — Tier 2.
-- `[considering]` Cross-Tenant Pattern Signal — Tier 2. **Do not evaluate via standard process — requires dedicated privacy-engineering review first per scope-evaluation checklist §3.**
+- `[considering]` Cross-Tenant Pattern Signal — Tier 2. **Do not evaluate via standard process — requires dedicated privacy-engineering review first per scope-evaluation checklist §3 (now canonical: `docs/admin/SCOPE_EVALUATION_CHECKLIST.md` §3 — privacy-engineering gate).**
 - `[watching, not building]` Landlord surveillance-tech database — duplicates Anti-Eviction Mapping Project's existing work.
 - `[watching, not building]` Proprietary eviction e-filing court integration — needs a court partnership Semptify doesn't have yet.
 - `[done]` Landing page rebuild (fact-forward, typography-led concept, replacing "comforts of home") — planning complete, execution not yet started. Awaiting Brad's go + Phase 1 sourcing audit.

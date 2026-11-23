@@ -53,16 +53,33 @@ services:
     sync: false
   - key: DROPBOX_APP_SECRET
     sync: false
-  - key: NEDRIVE_CLIENT_SECRET
+  - key: ONEDRIVE_CLIENT_SECRET
     sync: false
   - key: ADMIN_USERNAME
     sync: false
   - key: DEPLOY_TARGET
     value: render_mvp
     sync: false
+  # Embedded bill platform (cloned into the image by Dockerfile.render) —
+  # these feed the internal bill server + its Litestream→R2 persistence,
+  # NOT the Semptify app itself. BILL_UPSTREAM enables the /bill* proxy
+  # routes; the values marked sync:false are set in the dashboard.
+  - key: BILL_MOUNT
+    value: /bill
+  - key: BILL_UPSTREAM
+    value: http://127.0.0.1:8093
+  - key: BILL_STEWARD_CODE
+    sync: false
+  - key: LITESTREAM_ACCESS_KEY_ID
+    sync: false
+  - key: LITESTREAM_SECRET_ACCESS_KEY
+    sync: false
+  - key: R2_BUCKET
+    sync: false
   region: ohio
   dockerContext: .
   dockerfilePath: ./Dockerfile.render
+  healthCheckPath: /health
   domains:
   - www.semptify.org
   - semptify.org

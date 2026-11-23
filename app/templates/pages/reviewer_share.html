@@ -13,11 +13,12 @@
 #}
 {% block title %}Shared case file — Semptify{% endblock %}
 {% block body_class %}shell reviewer-share{% endblock %}
+{% block safety_exit %}{% include "components/safety_exit.html" %}{% endblock %}
 {% block main_class %}shell-main shell-main--top{% endblock %}
 {% block nav %}{% endblock %}
 {% block styles %}
 {{ super() }}
-<link rel="stylesheet" href="/static/css/legal-share.css?v=20260928-03">
+<link rel="stylesheet" href="/static/css/legal-share.css?v=20261114-01">
 {% endblock %}
 
 {% block content %}
@@ -29,6 +30,7 @@
         <p class="shell-eyebrow">Shared case file</p>
         <h1 id="rsCaseTitle">Case file</h1>
         <p class="rs-meta" id="rsMeta"></p>
+        <p class="rs-message" id="rsMessage" hidden></p>
     </header>
 
     <!-- 2. Document selection -->
@@ -91,5 +93,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/reviewer.js?v=20260928-01"></script>
+<script src="/static/js/reviewer.js?v=20261114-01"></script>
 {% endblock %}

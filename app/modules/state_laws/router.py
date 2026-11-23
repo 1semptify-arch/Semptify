@@ -46,7 +46,17 @@ class StateBasic(BaseModel):
 
     code: str = Field(..., description="Two-letter state code")
     name: str = Field(..., description="Full state name")
-    status: str = Field(..., description="Data completeness: 'complete' or 'stub'")
+    status: str = Field(
+        ..., description="Schema completeness: 'complete', 'partial', or 'stub'"
+    )
+    data_depth: str | None = Field(
+        None,
+        description="Content depth tier: 'full', 'substantial', or 'crisis-tier'",
+    )
+    last_verified: str | None = Field(
+        None,
+        description="Date populated fields were last checked against primary sources",
+    )
 
 
 class StateDetails(BaseModel):
@@ -56,6 +66,8 @@ class StateDetails(BaseModel):
     name: str
     nickname: str | None = None
     status: str
+    data_depth: str | None = None
+    last_verified: str | None = None
     housing_laws: dict | None = None
     notice_requirements: dict | None = None
     security_deposit: dict | None = None
@@ -89,13 +101,21 @@ async def list_states():
                 "name": info.get("name"),
                 "status": info.get("status", "stub"),
                 "has_complete_data": info.get("status") == "complete",
+                "data_depth": info.get("data_depth"),
+                "last_verified": info.get("last_verified"),
             }
         )
+
+    depth_counts: dict[str, int] = {}
+    for s in states:
+        if s["data_depth"]:
+            depth_counts[s["data_depth"]] = depth_counts.get(s["data_depth"], 0) + 1
 
     return {
         "count": len(states),
         "complete_count": sum(1 for s in states if s["has_complete_data"]),
         "stub_count": sum(1 for s in states if not s["has_complete_data"]),
+        "depth_counts": depth_counts,
         "states": sorted(states, key=lambda x: x["name"]),
     }
 

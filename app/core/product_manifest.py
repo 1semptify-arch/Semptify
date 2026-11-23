@@ -782,6 +782,13 @@ _register(
     upl_risk_tier=UPLRiskTier.MEDIUM_HIGH,
     log_message="Legal workspace router connected — matters, filings, discovery, exhibits active",
 )
+_register(
+    "app.modules.coview.router",
+    tags=("Co-View", "Shared Viewing"),
+    tier=ProductTier.EXTENDED,
+    upl_risk_tier=UPLRiskTier.MEDIUM,
+    log_message="Co-view router connected — eyes-only shared document sessions active",
+)
 
 # Case management
 _register("app.modules.intake.router", tags=("Document Intake",), tier=ProductTier.EXTENDED)
@@ -1348,6 +1355,25 @@ _register(
         "Forge: 28/28 smoke tests. 5 contracts. Promoted beta → stable 2026-06-28."
     ),
     log_message="Document Center router connected at /api/dc (stable — tenant workhorse)",
+)
+_register(
+    "app.modules.document_center.intake_router",
+    prefix="/api/dc/intake",
+    tags=("Document Center Intake",),
+    tier=ProductTier.CORE,
+    lifecycle="stable",
+    requires_role=(),
+    dev_notes=(
+        "OCR-first intake confirm-loop API — second router inside the document_center "
+        "module (POST /start, GET /{session_id}, POST /{session_id}/answer, "
+        "POST /{session_id}/finalize). Cookie-auth + session-ownership enforced "
+        "inside each handler; sessions are ephemeral in-memory per ADR-0007. "
+        "Manifest registration is what mounts it: previously it was only mounted "
+        "by an explicit create_app block gated on non-MVP + non-lazy, so the whole "
+        "/api/dc/intake tree 404'd under DEPLOY_TARGET=render_mvp and "
+        "SEMPTIFY_LAZY_ROUTERS=1 (task-5f475242, 2026-11-19)."
+    ),
+    log_message="Document Center intake router connected at /api/dc/intake",
 )
 
 

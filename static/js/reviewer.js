@@ -206,6 +206,11 @@
         if (bundle.reviewer_label) meta.push("Prepared for " + bundle.reviewer_label);
         if (bundle.expires_at) meta.push("Link works until " + fmtDate(bundle.expires_at));
         document.getElementById("rsMeta").textContent = meta.join(" · ");
+        if (bundle.message) {
+            var msgEl = document.getElementById("rsMessage");
+            msgEl.textContent = bundle.message;
+            msgEl.hidden = false;
+        }
 
         renderDocs(bundle.documents || []);
         renderNotes(bundle.notes);

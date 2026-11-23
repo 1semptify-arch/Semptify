@@ -25,17 +25,20 @@ import logging
 import time
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, HTTPException, Request, Response
 from jose import JWTError, jwt
-
-from app.core.security import auth_gate
 
 logger = logging.getLogger(__name__)
 
+# No auth_gate here by design: Google calls this endpoint unauthenticated.
+# The Google-signed Security Event Token (JWKS + audience + 5-min replay
+# window in _verify_risc_token) IS the authentication for POST /webhook;
+# GET /webhook is a public reachability ping that returns a static "OK".
+# Do NOT re-add a router-level auth dependency — c7b846bb did and it made
+# RISC permanently unusable (Google can never hold a Semptify cookie).
 router = APIRouter(
     prefix="/risc/google",
     tags=["RISC"],
-    dependencies=[Depends(auth_gate)],
 )
 
 # Google's RISC issuer and JWKS endpoint

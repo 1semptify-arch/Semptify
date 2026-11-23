@@ -110,10 +110,11 @@ templates.env.globals["subject_starters"] = _get_subject_starters()
 
 # Expose i18n `_()` helper, locale list, and current-locale resolver to all Jinja2
 # templates (Task 6 i18n).
-from app.core.i18n import _jinja2_gettext, available_locales, catalog_status, get_locale
+from app.core.i18n import _jinja2_gettext, available_locales, catalog_status, get_locale, reviewed_locales
 
 templates.env.globals["_"] = _jinja2_gettext
 templates.env.globals["supported_locales"] = available_locales()
+templates.env.globals["reviewed_locales"] = reviewed_locales()
 templates.env.globals["get_locale"] = get_locale
 templates.env.globals["catalog_status"] = catalog_status
 
@@ -169,6 +170,61 @@ def register_stateless_routes(app: FastAPI):
     async def footer_component(request: Request):
         """Return the canonical footer partial for both Jinja includes and JS injection."""
         return templates.TemplateResponse(request, "components/footer.html", {"year": utc_now().year})
+
+
+def _register_bill_platform_proxy(app: FastAPI):
+    """Reverse-proxy the embedded Bill Platform (BILL_UPSTREAM) into this service.
+
+    The bill platform is a separate stdlib-only repo (1semptify-arch/bill-platform)
+    that Render's Dockerfile.render clones and starts on 127.0.0.1:8093 inside the
+    same container, so ONE Render free service carries both apps inside the shared
+    750 free-hours/month pool. The Cloudflare bill-platform-proxy worker still
+    serves every static read from the GitHub snapshot; it forwards only live
+    traffic (POSTs, steward cookies, non-auto modes, API) to this origin.
+
+    Implemented as the OUTERMOST middleware (added here, after every other
+    add_middleware call, so it runs first): portal pages own the same exact
+    paths and the checkpoint middleware would gate them to /preamble — a route
+    loses on ordering, middleware does not.
+
+    Active only when BILL_UPSTREAM is set — unset means this is a normal
+    Semptify deploy and the portal redirect pages keep owning these paths.
+    """
+    upstream = os.environ.get("BILL_UPSTREAM", "").rstrip("/")
+    if not upstream:
+        return
+
+    import httpx
+
+    client = httpx.AsyncClient(base_url=upstream, timeout=httpx.Timeout(30.0))
+    prefixes = ("/bill", "/your-voice", "/what-the-bill-changes")
+    drop_req = {"host", "content-length", "transfer-encoding", "connection"}
+    drop_resp = {"transfer-encoding", "connection", "content-encoding"}
+
+    @app.middleware("http")
+    async def bill_platform_proxy(request: Request, call_next):
+        path = request.url.path
+        if not any(path == p or path.startswith(p + "/") for p in prefixes):
+            return await call_next(request)
+        target = path + ("?" + request.url.query if request.url.query else "")
+        headers = [(k, v) for k, v in request.headers.raw if k.decode().lower() not in drop_req]
+        try:
+            resp = await client.request(
+                request.method,
+                target,
+                content=await request.body(),
+                headers=headers,
+                follow_redirects=False,
+            )
+        except httpx.HTTPError:
+            return Response("bill platform unavailable", status_code=503)
+        # raw append, not dict(): multiple Set-Cookie headers must survive
+        # (steward unlock sets session cookies).
+        out = Response(content=resp.content, status_code=resp.status_code)
+        out.raw_headers = [
+            (k, v) for k, v in resp.headers.raw if k.decode().lower() not in drop_resp
+        ]
+        return out
 
 
 # Add custom Jinja2 filters
@@ -1647,13 +1703,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Rate Limiting
     # =========================================================================
     from slowapi.errors import RateLimitExceeded
-    from slowapi.middleware import SlowAPIMiddleware
 
-    from app.core.rate_limit import limiter, rate_limit_exceeded_handler
+    from app.core.rate_limit import (
+        LazyRouterSlowAPIMiddleware,
+        limiter,
+        rate_limit_exceeded_handler,
+    )
 
     fastapi_app.state.limiter = limiter
     fastapi_app.state.load_profile = load_profile
-    fastapi_app.add_middleware(SlowAPIMiddleware)
+    # LazyRouterSlowAPIMiddleware: stock SlowAPIMiddleware cannot resolve
+    # endpoints behind FastAPI 0.141 lazy _IncludedRouter proxies, so
+    # default_limits silently skipped every lazily-included router.
+    fastapi_app.add_middleware(LazyRouterSlowAPIMiddleware)
     fastapi_app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
     # =========================================================================
@@ -1943,6 +2005,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         enable_hsts=is_production,  # HSTS only in production
     )
 
+    # G10.8 idle-timeout marker refresh — relays the refreshed semptify_idle
+    # cookie that get_current_user flags on request.state (sliding window).
+    from app.core.session_idle import IdleActivityMiddleware
+
+    fastapi_app.add_middleware(IdleActivityMiddleware)
+
     # Request timeout (prevents hung requests)
     from app.core.timeout import TimeoutMiddleware
 
@@ -2032,35 +2100,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     else:
         register_tiers(fastapi_app, *enabled_tiers)
 
-    # Document Center is a DEV-tier module that may not have been loaded above.
-    # For non-MVP builds, explicitly mount /api/dc so the document-type registry
-    # (including house_rules) is reachable without requiring a full development env.
-    if not is_mvp_deploy() and not _lazy_routers:
-        from app.modules.document_center import router as document_center_router
-
-        already_mounted = any(
-            getattr(r, "path", "").startswith("/api/dc")
-            for r in fastapi_app.routes
-            if hasattr(r, "path")
-        )
-        if not already_mounted:
-            fastapi_app.include_router(
-                document_center_router,
-                prefix="/api/dc",
-                tags=["Document Center"],
-            )
-        from app.modules.document_center import intake_router
-
-        if not any(
-            getattr(r, "path", "").startswith("/api/dc/intake")
-            for r in fastapi_app.routes
-            if hasattr(r, "path")
-        ):
-            fastapi_app.include_router(
-                intake_router.router,
-                prefix="/api/dc/intake",
-                tags=["Document Center Intake"],
-            )
+    # Document Center (both routers) mounts via product_manifest CORE entries:
+    # document_center.router at /api/dc and document_center.intake_router at
+    # /api/dc/intake. Manifest registration is the single mount path — an
+    # explicit non-MVP/non-lazy mount block used to live here, but it skipped
+    # /api/dc/intake entirely under DEPLOY_TARGET=render_mvp and
+    # SEMPTIFY_LAZY_ROUTERS=1, so those routes 404'd on Render (task-5f475242).
 
     # Static asset mount used by public pages (unrelated to the root route below).
     app_static_path = BASE_PATH / "app" / "static"
@@ -2153,31 +2198,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                         s.id: _step_map.context(s.id) for s in _step_map.TENANT_JOURNEY
                     }
                     context["journey_by_pillar"] = {s.pillar: s.id for s in _steps.values()}
-                if _p.id == "bill_research":
-                    # Published claims ledger — written by the case-side
-                    # publish pipeline (sanitized, no private-party names).
-                    claims_file = BASE_PATH / "data" / "bill_claims_public.json"
-                    if claims_file.exists():
-                        try:
-                            import json as _json
-                            context.update(_json.loads(
-                                claims_file.read_text(encoding="utf-8")))
-                        except Exception:  # pylint: disable=broad-exception-caught
-                            context["claims"] = []
-                    else:
-                        context["claims"] = []
-                if _p.id == "bill_live":
-                    # Clean statute tab — derived from the same published
-                    # partial the notes tab renders verbatim, so the two
-                    # views can never drift apart. None -> template falls
-                    # back to including the working file.
-                    try:
-                        from app.modules.portal.service import bill_statute_view
-                        draft_file = BASE_PATH / "app" / "templates" / "public" / "bill_draft.html"
-                        context["bill_statute_html"] = bill_statute_view(
-                            draft_file.read_text(encoding="utf-8"))
-                    except Exception:  # pylint: disable=broad-exception-caught
-                        context["bill_statute_html"] = None
                 if _p.id == "toolbox":
                     context.update(_toolbox.page_context())
                 if _p.id in _pillars.PAGE_IDS:
@@ -2434,15 +2454,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/advocate/dashboard", response_class=HTMLResponse)
     async def advocate_dashboard_page(request: Request):
         """Serve the advocate dashboard with modular components."""
-        from app.core.storage_middleware import is_valid_storage_user
-        from app.core.user_id import COOKIE_USER_ID
-
-        _raw = request.cookies.get(COOKIE_USER_ID)
-        user_id = str(_raw) if _raw is not None else None
-        if not is_valid_storage_user(user_id):
-            providers_stage = navigation.get_stage("providers")
-            providers_path = providers_stage.path if providers_stage else "/storage/providers"
-            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
+        guard_redirect = await _guard_role_page(request, {"advocate"})
+        if guard_redirect:
+            return guard_redirect
 
         advocate_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "advocate_dashboard.html"
         if advocate_dashboard_path.exists():
@@ -2461,15 +2475,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/legal/dashboard", response_class=HTMLResponse)
     async def legal_dashboard_page(request: Request):
         """Serve the legal dashboard with modular components."""
-        from app.core.storage_middleware import is_valid_storage_user
-        from app.core.user_id import COOKIE_USER_ID
-
-        _raw = request.cookies.get(COOKIE_USER_ID)
-        user_id = str(_raw) if _raw is not None else None
-        if not is_valid_storage_user(user_id):
-            providers_stage = navigation.get_stage("providers")
-            providers_path = providers_stage.path if providers_stage else "/storage/providers"
-            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
+        guard_redirect = await _guard_role_page(request, {"legal"})
+        if guard_redirect:
+            return guard_redirect
 
         legal_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "legal_dashboard.html"
         if legal_dashboard_path.exists():
@@ -2498,9 +2506,41 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def admin_login_page(request: Request):
         """Admin elevation prompt — requires existing OAuth session."""
         from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
+        from app.core.admin_gating import admin_login_api_mounted
         from app.core.cookie_auth import extract_user_id
 
         logger.info("=== ADMIN ELEVATION PAGE REQUESTED ===")
+
+        # Never show a working-looking form when the admin login API isn't
+        # mounted on this deployment (allowlist exclusion or skipped optional
+        # import) — submitting it could only 404. Show the honest state.
+        if not admin_login_api_mounted(request.app):
+            return HTMLResponse(
+                status_code=503,
+                content="""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Access</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .box { background: #1e293b; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 360px; text-align: center; }
+        h1 { margin-bottom: 1rem; color: #94a3b8; font-size: 1rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; }
+        p { color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.25rem; }
+        a { color: #93c5fd; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Secure Access</h1>
+        <p>Admin access is not available on this deployment.</p>
+        <a href="/">Return home</a>
+    </div>
+</body>
+</html>""",
+            )
 
         admin_dashboard_stage = navigation.get_stage("admin_dashboard")
         admin_dashboard_path = admin_dashboard_stage.path if admin_dashboard_stage else "/admin/dashboard"
@@ -4320,6 +4360,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """Lightweight guard: storage connected + expected role for portal page."""
         from app.core.cookie_auth import extract_user_id
         from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import get_role_from_user_id
+        from app.core.workflow_engine import route_user as _route_user
 
         signed_cookie = request.cookies.get("semptify_uid", "")
         user_id = extract_user_id(request)
@@ -4334,9 +4376,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             reconnect_path = reconnect_stage.path if reconnect_stage else "/storage/reconnect"
             return ssot_redirect(reconnect_path, context="document_delivery reconnect required")
 
-        # ONBOARDING SOLO: no role check — a valid authenticated tenant
-        # passes. Page-level restrictions beyond this are share-based, not
-        # role-based.
+        # ONBOARDING SOLO: every valid ID decodes as tenant, so a page whose
+        # role set excludes the tenant class (advocate/legal/manager/pro-only
+        # surfaces) is dormant — route the tenant home instead of rendering
+        # it. 'user' is the legacy alias for 'tenant' and is treated as
+        # equivalent so USER-scoped sets still admit tenants.
+        current_role = get_role_from_user_id(user_id) or ""
+        _tenant_aliases = {"tenant", "user"}
+        effective_allowed = allowed_roles | (_tenant_aliases if allowed_roles & _tenant_aliases else set())
+        if ("tenant" if current_role in _tenant_aliases else current_role) not in effective_allowed:
+            return ssot_redirect(await _route_user(user_id), context="role_page role mismatch")
         return None
 
     # =========================================================================
@@ -6522,6 +6571,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.utc import utc_now
 
         return {"status": "ok", "ts": utc_now().isoformat()}
+
+    _register_bill_platform_proxy(fastapi_app)
 
     register_stateless_routes(fastapi_app)
 

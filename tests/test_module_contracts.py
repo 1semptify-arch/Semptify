@@ -286,3 +286,105 @@ class TestModuleContractFlow:
         data["flow"] = [{"step": 1, "id": "x", "subject": "user", "verb": "", "object": "o"}]
         with pytest.raises(Exception):
             ModuleContract.model_validate(data)
+
+
+# ---------------------------------------------------------------------------
+# minimum_surface (Zen structural declaration)
+# ---------------------------------------------------------------------------
+class TestMinimumSurface:
+    def _base(self):
+        return {
+            "module_name": "M",
+            "layout": "L",
+            "output_type": "other",
+            "output_how": "h",
+            "output_where": "w",
+            "output_why": "y",
+            "process_description": "p",
+            "process_context": "c",
+        }
+
+    def _surface(self):
+        return {
+            "goal": "Serve the one thing this module exists for.",
+            "pages": ["/m"],
+            "endpoints": ["/api/m"],
+            "nav": ["Menu item"],
+            "extras": [
+                {
+                    "name": "/api/m/legacy",
+                    "kind": "endpoint",
+                    "justification": "Existing callers still hit the legacy path.",
+                }
+            ],
+        }
+
+    def test_optional_absent(self):
+        from app.core.module_contract import ModuleContract
+
+        c = ModuleContract.model_validate(self._base())
+        assert c.minimum_surface is None
+
+    def test_valid_declaration(self):
+        from app.core.module_contract import ModuleContract
+
+        data = self._base()
+        data["minimum_surface"] = self._surface()
+        c = ModuleContract.model_validate(data)
+        ms = c.minimum_surface
+        assert ms is not None
+        assert ms.goal.startswith("Serve")
+        assert ms.surface_total() == 3
+        assert ms.extras[0].kind == "endpoint"
+
+    def test_requires_goal(self):
+        from app.core.module_contract import ModuleContract
+
+        data = self._base()
+        surface = self._surface()
+        del surface["goal"]
+        data["minimum_surface"] = surface
+        with pytest.raises(Exception):
+            ModuleContract.model_validate(data)
+
+    def test_empty_surface_rejected(self):
+        from app.core.module_contract import ModuleContract
+
+        data = self._base()
+        surface = self._surface()
+        surface["pages"] = []
+        surface["endpoints"] = []
+        surface["nav"] = []
+        data["minimum_surface"] = surface
+        with pytest.raises(Exception, match="shortfall"):
+            ModuleContract.model_validate(data)
+
+    def test_extra_requires_justification(self):
+        from app.core.module_contract import ModuleContract
+
+        data = self._base()
+        surface = self._surface()
+        del surface["extras"][0]["justification"]
+        data["minimum_surface"] = surface
+        with pytest.raises(Exception):
+            ModuleContract.model_validate(data)
+
+    def test_extra_kind_enum(self):
+        from app.core.module_contract import ModuleContract
+
+        data = self._base()
+        surface = self._surface()
+        surface["extras"][0]["kind"] = "widget"
+        data["minimum_surface"] = surface
+        with pytest.raises(Exception, match="approved set"):
+            ModuleContract.model_validate(data)
+
+    def test_extra_duplicating_minimum_rejected(self):
+        from app.core.module_contract import ModuleContract
+
+        data = self._base()
+        surface = self._surface()
+        surface["extras"][0]["name"] = "/api/m"
+        data["minimum_surface"] = surface
+        with pytest.raises(Exception, match="duplicate declared minimum"):
+            ModuleContract.model_validate(data)

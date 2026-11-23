@@ -16,14 +16,15 @@ Endpoints:
 # All imports remain absolute since document_converter is a CORE module.
 
 import logging
-import os
+import re
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from app.core.security import green_access, rate_limit_dependency
 from app.core.utc import utc_now
 from app.modules.document_converter.converter import (
     DOCUMENT_STYLES,
@@ -34,11 +35,37 @@ from app.modules.document_converter.converter import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/convert", tags=["Document Converter"])
+# All conversion endpoints require an authenticated app user (green: valid
+# signed cookie). They were previously unauthenticated — that left /list
+# enumerating every converted document and /path reading server files.
+router = APIRouter(
+    prefix="/api/convert",
+    tags=["Document Converter"],
+    dependencies=[Depends(green_access)],
+)
 
 # Output directory for converted files
 CONVERT_OUTPUT_DIR = Path("data/converted_documents")
 CONVERT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# Server-side bounds — conversion endpoints were unauthenticated with no
+# caps, a CPU/disk exhaustion surface.
+MAX_MARKDOWN_CHARS = 2_000_000  # ~2 MB of markdown text
+MAX_UPLOAD_BYTES = 2 * 1024 * 1024  # 2 MB uploaded .md file
+MAX_OUTPUT_BYTES = 25 * 1024 * 1024  # refuse to serve files larger than this
+
+# Repo root — /path conversions are confined inside it so the endpoint can't
+# be turned into an arbitrary file read.
+_BASE_DIR = Path(__file__).resolve().parents[3]
+
+_SAFE_FILENAME_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
+
+def _safe_stem(name: str | None) -> str:
+    """Reduce a user-supplied filename to a safe stem (no dirs/separators)."""
+    stem = Path(name or "document").name.rsplit(".", 1)[0]
+    stem = _SAFE_FILENAME_RE.sub("_", stem).strip("._-")
+    return stem[:100] or "document"
 
 
 # =============================================================================
@@ -49,15 +76,15 @@ CONVERT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 class ConvertRequest(BaseModel):
     """Request model for text conversion"""
 
-    markdown_text: str
-    title: str | None = None
-    case_number: str | None = None
-    court: str | None = None
-    parties: str | None = None
-    author: str | None = None
+    markdown_text: str = Field(..., max_length=MAX_MARKDOWN_CHARS)
+    title: str | None = Field(None, max_length=500)
+    case_number: str | None = Field(None, max_length=200)
+    court: str | None = Field(None, max_length=500)
+    parties: str | None = Field(None, max_length=2000)
+    author: str | None = Field(None, max_length=500)
     style: str | None = "legal_brief"  # legal_brief, court_filing, standard, memo
     linked_documents: dict[str, str] | None = None
-    filename: str | None = None
+    filename: str | None = Field(None, max_length=255)
 
 
 class ConvertFilePathRequest(BaseModel):
@@ -110,11 +137,11 @@ def build_metadata(request: ConvertRequest) -> DocumentMetadata | None:
 def generate_filename(request: ConvertRequest) -> str:
     """Generate output filename"""
     if request.filename:
-        return request.filename.rsplit(".", 1)[0]
+        return _safe_stem(request.filename)
 
     timestamp = utc_now().strftime("%Y%m%d_%H%M%S")
     if request.case_number:
-        safe_case = request.case_number.replace(" ", "_").replace("/", "_")
+        safe_case = _safe_stem(request.case_number)
         return f"document_{safe_case}_{timestamp}"
     return f"document_{timestamp}"
 
@@ -124,7 +151,11 @@ def generate_filename(request: ConvertRequest) -> str:
 # =============================================================================
 
 
-@router.post("/docx", response_model=ConvertResponse)
+@router.post(
+    "/docx",
+    response_model=ConvertResponse,
+    dependencies=[Depends(rate_limit_dependency("doc-convert", window=60, max_requests=10))],
+)
 async def convert_to_docx(request: ConvertRequest):
     """
     Convert markdown text to Microsoft Word (.docx) format
@@ -161,7 +192,11 @@ async def convert_to_docx(request: ConvertRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/html", response_model=ConvertResponse)
+@router.post(
+    "/html",
+    response_model=ConvertResponse,
+    dependencies=[Depends(rate_limit_dependency("doc-convert", window=60, max_requests=10))],
+)
 async def convert_to_html(request: ConvertRequest):
     """
     Convert markdown text to interactive HTML
@@ -196,7 +231,11 @@ async def convert_to_html(request: ConvertRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/both", response_model=ConvertResponse)
+@router.post(
+    "/both",
+    response_model=ConvertResponse,
+    dependencies=[Depends(rate_limit_dependency("doc-convert", window=60, max_requests=10))],
+)
 async def convert_to_both(request: ConvertRequest):
     """
     Convert markdown text to both DOCX and HTML formats
@@ -224,7 +263,7 @@ async def convert_to_both(request: ConvertRequest):
             message="Document converted to both DOCX and HTML successfully",
             docx_path=docx_path,
             html_path=html_path,
-            download_url=f"/api/convert/download/{filename}",
+            download_url=f"/api/convert/download/{filename}.docx",
         )
 
     except Exception as e:
@@ -232,7 +271,10 @@ async def convert_to_both(request: ConvertRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/file")
+@router.post(
+    "/file",
+    dependencies=[Depends(rate_limit_dependency("doc-convert", window=60, max_requests=10))],
+)
 async def convert_file(
     file: UploadFile = File(...),
     output_format: str = Form("both"),
@@ -246,12 +288,18 @@ async def convert_file(
 
     Upload a .md file and get converted documents back.
     """
-    if not file.filename.endswith(".md"):
+    if not file.filename or not file.filename.lower().endswith(".md"):
         raise HTTPException(status_code=400, detail="Only .md (Markdown) files are supported")
+
+    declared = file.size if file.size is not None else 0
+    if declared > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail=f"File too large — limit is {MAX_UPLOAD_BYTES // 1024 // 1024}MB")
 
     try:
         # Read uploaded file
         content = await file.read()
+        if len(content) > MAX_UPLOAD_BYTES:
+            raise HTTPException(status_code=413, detail=f"File too large — limit is {MAX_UPLOAD_BYTES // 1024 // 1024}MB")
         markdown_text = content.decode("utf-8")
 
         # Build request
@@ -272,23 +320,39 @@ async def convert_file(
         else:
             return await convert_to_both(request)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"File conversion error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/path")
+@router.post(
+    "/path",
+    dependencies=[Depends(rate_limit_dependency("doc-convert", window=60, max_requests=10))],
+)
 async def convert_from_path(request: ConvertFilePathRequest):
     """
     Convert a markdown file from a file path
 
     Useful for converting case documents already in the system.
+    Confined to .md files inside the application directory — previously any
+    readable path on the server was accepted.
     """
-    if not os.path.exists(request.file_path):
+    resolved = Path(request.file_path).resolve()
+    try:
+        resolved.relative_to(_BASE_DIR)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Path must be inside the application directory")
+    if resolved.suffix.lower() != ".md":
+        raise HTTPException(status_code=400, detail="Only .md (Markdown) files are supported")
+    if not resolved.is_file():
         raise HTTPException(status_code=404, detail="File not found")
+    if resolved.stat().st_size > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail=f"File too large — limit is {MAX_UPLOAD_BYTES // 1024 // 1024}MB")
 
     try:
-        with open(request.file_path, encoding="utf-8") as f:
+        with open(resolved, encoding="utf-8") as f:
             markdown_text = f.read()
 
         convert_request = ConvertRequest(
@@ -298,7 +362,7 @@ async def convert_from_path(request: ConvertFilePathRequest):
             court=request.court,
             style=request.style,
             linked_documents=request.linked_documents,
-            filename=Path(request.file_path).stem,
+            filename=resolved.stem,
         )
 
         if request.output_format == "docx":
@@ -308,6 +372,8 @@ async def convert_from_path(request: ConvertFilePathRequest):
         else:
             return await convert_to_both(convert_request)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Path conversion error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -318,10 +384,18 @@ async def download_file(filename: str):
     """
     Download a converted document
     """
-    file_path = CONVERT_OUTPUT_DIR / filename
+    # Confine to the output dir — a bare join allowed ../ traversal.
+    safe_name = Path(filename).name
+    file_path = (CONVERT_OUTPUT_DIR / safe_name).resolve()
+    try:
+        file_path.relative_to(CONVERT_OUTPUT_DIR.resolve())
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Invalid filename")
 
-    if not file_path.exists():
+    if not file_path.is_file():
         raise HTTPException(status_code=404, detail="File not found")
+    if file_path.stat().st_size > MAX_OUTPUT_BYTES:
+        raise HTTPException(status_code=413, detail="File too large to download")
 
     # Determine media type
     if filename.endswith(".docx"):

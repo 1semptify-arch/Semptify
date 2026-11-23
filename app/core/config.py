@@ -107,8 +107,10 @@ class Settings:
     # — entries verify for a 60-day grace window, then stop verifying.
     secret_key_version: int = int(os.getenv("SECRET_KEY_VERSION", "0"))
     secret_key_history: str = os.getenv("SECRET_KEY_HISTORY", "")
-    upload_dir: str = "uploads"
-    vault_dir: str = "uploads/vault"
+    # Env-overridable so isolated instances (sandbox/) can point uploads at
+    # their own root instead of the shared uploads/ tree.
+    upload_dir: str = os.getenv("SEMPTIFY_UPLOAD_DIR", "uploads")
+    vault_dir: str = os.getenv("SEMPTIFY_VAULT_DIR", "uploads/vault")
     max_upload_size_mb: int = 50
 
     def __init__(self):

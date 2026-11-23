@@ -23,5 +23,14 @@
   "output_why": "Serves the Page Router functions declared in its FunctionGroupContracts.",
   "process_description": "Serve a template page declared in the page manifest. Applies the PAGE_CONTRACTS guard (user cookie, valid storage session, role membership) before rendering; redirects via SSOT navigation on denial. Renders the Jinja2 template with standard context (page_id, page_title, contract, user info); falls back to a placeholder page when the template file does not exist yet. Routes are generated dynamically from PAGE_MANIFEST at import time — routes already owned by dedicated handlers are skipped.",
   "process_context": "Derived record. Invoked via the page_router module's registered routes and dependencies.",
-  "narrative_events": []
+  "narrative_events": [],
+  "minimum_surface": {
+    "goal": "Serve every manifest-declared template page through one contract-guarded route, so no page needs its own handler.",
+    "pages": [
+      "PAGE_MANIFEST:*"
+    ],
+    "endpoints": [],
+    "nav": [],
+    "extras": []
+  }
 }

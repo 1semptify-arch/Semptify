@@ -61,6 +61,7 @@ xhtml2pdf>=0.2.17           # HTML-to-PDF fallback (reportlab-based, no Cairo/GD
 # Document Conversion (Markdown to DOCX/HTML)
 # =============================================================================
 python-docx>=1.1.0          # Word document generation
+markdown>=3.5               # Markdown-to-HTML for the document converter
 
 # =============================================================================
 # Calendar / iCal

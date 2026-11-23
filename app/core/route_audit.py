@@ -8,10 +8,17 @@ This closes the ``/debug/seed-test-user`` class of gap: an ad-hoc route
 slipping onto the public surface with no contract, no review, and nobody
 noticing until an audit stumbles across it.
 
-Scope: only "actionable" routes are flagged — API paths (``/api/...``) and
-any non-GET method anywhere. Plain GET pages (GUI guides, static HTML,
-marketing pages) are intentionally out of scope: they are public by design
-and covered by page-level review, not module contracts.
+Scope: only "actionable" routes are flagged — API paths (``/api/...``),
+any non-GET method anywhere, and GET-only routes whose path signals
+operational surface (``/debug/data-dump``-class) rather than a page.
+Plain GET pages (GUI guides, static ``.html``, marketing pages) are
+intentionally out of scope: they are public by design and covered by
+page-level review, not module contracts. A GET route only reaches the
+audit if it is already public — ``is_public_path`` is the outer gate —
+so this tightening covers ad-hoc GETs mounted under public namespaces
+(``/debug/``, ``/storage/``, ``/gui/``, ``/r/``, ...) that no contract
+owns; routes outside every public prefix stay behind the storage gate
+and out of scope regardless of method.
 
 Non-fatal by design (same contract-loader convention): one warning per
 flagged route plus a summary line. Set ``ROUTE_AUDIT_STRICT=1`` to make
@@ -22,6 +29,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from typing import Any
 
 from fastapi import FastAPI
@@ -31,6 +39,38 @@ logger = logging.getLogger(__name__)
 _SKIP_METHODS = {"HEAD", "OPTIONS"}
 # Mounts and infra paths that are public plumbing, not module surface.
 _INFRA_PREFIXES = ("/static", "/assets", "/docs", "/openapi", "/redoc")
+# App-shell docs surface — FastAPI mounts Swagger UI, ReDoc, and the OpenAPI
+# schema under /api/ (docs_url/redoc_url/openapi_url in create_app), not at
+# the /docs-style roots above. Public by the 2026-11-02 decision and
+# whitelisted in StorageRequirementMiddleware.PUBLIC_PATHS; these are
+# framework plumbing, not module-router surface. Exact-match set, NOT a
+# prefix: /api/docs/* is real module surface (documentation router) that
+# stays auditable via its own FunctionGroupContracts.
+_INFRA_PATHS = frozenset(
+    {
+        "/api/docs",
+        "/api/redoc",
+        "/api/openapi.json",
+        "/api/docs/oauth2-redirect",
+    }
+)
+
+# GET-only routes are out of scope only while they read like pages. These
+# first path segments mark operational surface where a public GET can leak
+# state or trigger work without any contract ever seeing it — the ad-hoc
+# ``/debug/data-dump`` class of gap.
+_OPS_FIRST_SEGMENTS = {"debug", "admin", "internal", "ops", "dev", "test", "system"}
+# Anywhere in the path, these tokens (split on ``-``, ``_``, ``.``) signal a
+# data or maintenance endpoint wearing a GET — not a tenant-facing page.
+_DANGER_TOKENS = {
+    "dump", "export", "raw", "backup", "migrate", "seed", "schema",
+    "token", "tokens", "secret", "secrets", "credential", "credentials",
+    "sql", "db", "database", "cache", "session", "sessions", "logs",
+    "config", "configs", "private", "passwd", "password",
+}
+# Public by design AND self-guarded — auth happens inside the route
+# (elevation cookie), same plumbing category as /docs.
+_SELF_GUARDED_PATHS = {"/admin/login", "/admin/logout", "/admin/public-voice"}
 
 
 def _contract_coverage() -> tuple[set[str], tuple[str, ...]]:
@@ -51,13 +91,36 @@ def _is_covered(path: str, routes: set[str], prefixes: tuple[str, ...]) -> bool:
     return any(path == p or path.startswith(p + "/") for p in prefixes)
 
 
+def _is_sensitive_get(path: str) -> bool:
+    """A GET-only public route reads as operational surface — not a page —
+    when its path lives under an ops namespace or carries a data/maintenance
+    token. Static ``.html`` paths stay out of scope: they are the documented
+    public-by-design page class (auth enforced client-side)."""
+    if path.endswith(".html"):
+        return False
+    segments = [s for s in path.split("/") if s]
+    if not segments:
+        return False
+    if segments[0] in _OPS_FIRST_SEGMENTS:
+        return True
+    tokens = {t for s in segments for t in re.split(r"[-_.]", s) if t}
+    return bool(tokens & _DANGER_TOKENS)
+
+
 def _is_actionable(path: str, methods: set[str]) -> bool:
-    """A public route is actionable if it is an API path or does mutations."""
-    if path.startswith(_INFRA_PREFIXES):
+    """A public route is actionable if it is an API path, does mutations,
+    or is a GET-only route that reads like operational surface, not a page."""
+    if (
+        path.startswith(_INFRA_PREFIXES)
+        or path in _INFRA_PATHS
+        or path in _SELF_GUARDED_PATHS
+    ):
         return False
     if path.startswith("/api/"):
         return True
-    return bool(methods - {"GET"} - _SKIP_METHODS)
+    if methods - {"GET"} - _SKIP_METHODS:
+        return True
+    return _is_sensitive_get(path)
 
 
 def scan_public_routes(app: FastAPI) -> list[dict[str, Any]]:

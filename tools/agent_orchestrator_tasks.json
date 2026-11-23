@@ -4145,5 +4145,38 @@
     "target_model": "unlimited",
     "notes": "Requested by Brad 2026-11-23 in Devin session 6838e1036ccc4387b9ff58689d222508 \u2014 global UI application of state-driven UI pattern.\n[2026-11-23 devin] Delivered: static/js/state-ui.js runtime, design-system/components/state-ui.css + index.css import, .devin/skills/state-driven-ui + .github/prompts mirror. PR #357. Guardrail engine 11/11 PASS; SSOT 8/8.",
     "updated_at": "2026-11-23T08:49:58.842223+00:00"
+  },
+  {
+    "id": "task-ci-green-20261123",
+    "category": "bugfix",
+    "created_at": "2026-11-23T00:00:00Z",
+    "description": "main CI red after #350: style-guard (safety_exit.html hardcoded colors, legal_dashboard.html 0.72rem) + guardrail stub_check (sandbox _NoRedirect.redirect_request false positive).",
+    "file_path": "app/templates/components/safety_exit.html",
+    "status": "review",
+    "assigned_agent": "devin",
+    "notes": "[2026-11-23 00:50 UTC - devin] PR open; style_guard + stub_detector pass locally",
+    "updated_at": "2026-11-23T00:50:31.811300+00:00"
+  },
+  {
+    "id": "task-active-context-refresh-20261123",
+    "category": "docs",
+    "created_at": "2026-11-23T00:00:00Z",
+    "description": "ACTIVE_CONTEXT.md stale since 2026-10-31 (claims Render origin down / Neon quota). Refresh Last Updated + current standing to match BUILD_STATE 2026-11-01..11-21 and live /health.",
+    "file_path": "ACTIVE_CONTEXT.md",
+    "status": "review",
+    "assigned_agent": "devin",
+    "notes": "[2026-11-23 01:41 UTC - devin] ACTIVE_CONTEXT refreshed on PR #356 branch",
+    "updated_at": "2026-11-23T01:41:33.176375+00:00"
+  },
+  {
+    "id": "task-contract-copy-polish-20261123",
+    "category": "copy",
+    "created_at": "2026-11-23T00:00:00Z",
+    "description": "Contract copy backlog: verify central pass (app/core/contract_copy.py) covers UI; capitalize humanized descriptions; mark backlog done.",
+    "file_path": "app/core/contract_copy.py",
+    "status": "review",
+    "assigned_agent": "devin",
+    "notes": "[2026-11-23 01:44 UTC - devin] 2/2 new tests pass; page_composer_render 7/7",
+    "updated_at": "2026-11-23T01:44:40.993826+00:00"
   }
 ]

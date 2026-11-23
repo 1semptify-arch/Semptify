@@ -61,8 +61,8 @@ Notes:
   see the mirror repo's OPERATIONS_LOG.
 - Interim path until the admin lane ships: direct `voice_posts` update in
   the Neon `semptifty_db` database — `status` + `is_published` per the
-  decision table. `awaiting_review` counts unpublished rows including
-  declined ones (known cosmetic bug — logged to intake).
+  decision table. `awaiting_review` counts only `status='received'`
+  rows — declined items drop out of the count and the review lane.
 - Voice posts cannot be edited before publish today — there is no
   "publish the rest" button for the strip-PII row. Until an edit field
   exists, a post containing personal details should be handled in the

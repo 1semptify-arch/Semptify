@@ -123,7 +123,7 @@ document.getElementById('noteForm').addEventListener('submit', async function (e
         window.location.reload();
     } else {
         const data = await response.json().catch(() => ({}));
-        alert(data.detail || 'Could not save the note.');
+        SemptifyFeedback.error(data.detail || 'Could not save the note.');
     }
 });
 
@@ -133,7 +133,7 @@ async function deleteNote(id) {
     if (response.ok) {
         window.location.reload();
     } else {
-        alert('Could not delete the note.');
+        SemptifyFeedback.error('Could not delete the note.');
     }
 }
 
@@ -165,7 +165,7 @@ function editNote(id) {
         if (response.ok) {
             window.location.reload();
         } else {
-            alert('Could not update the note.');
+            SemptifyFeedback.error('Could not update the note.');
         }
     };
 

@@ -13,6 +13,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
+from app.core.cookie_auth import verify_user_id
+from app.core.security import is_valid_user_storage
 from app.services.positronic_brain import BrainEvent, EventType, ModuleType, PositronicBrain, get_brain
 
 logger = logging.getLogger(__name__)
@@ -207,6 +209,16 @@ async def brain_websocket(websocket: WebSocket, brain: PositronicBrain = Depends
     - State updates
     - Workflow triggers
     """
+    # Require a signed semptify_uid cookie — same gate as /ws/events
+    # (app/modules/websocket/router.py). accept() before close() so the
+    # 1008 reaches the client as a real close frame instead of a rejected
+    # handshake.
+    user_id = verify_user_id(websocket.cookies.get("semptify_uid"))
+    if not user_id or not is_valid_user_storage(user_id):
+        await websocket.accept()
+        await websocket.close(code=1008, reason="Authentication required")
+        return
+
     await websocket.accept()
     brain.websocket_clients.add(websocket)
 

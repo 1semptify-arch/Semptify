@@ -23,7 +23,7 @@
             <p class="footer-copyright">&copy; {{ year | default(2026) }} Semptify.org</p>
             <p class="footer-mandates">{{ _("footer.mandates") }}</p>
             <p class="footer-help">{{ _("footer.ai_notice") }}</p>
-            <div class="footer-help">{% include "components/locale_selector.html" %}</div>
+            {% if reviewed_locales|length > 1 %}<div class="footer-help">{% include "components/locale_selector.html" %}</div>{% endif %}
         </div>
     </div>
 </footer>

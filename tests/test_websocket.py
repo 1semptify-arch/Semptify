@@ -217,6 +217,13 @@ class TestWebSocketEvents:
 class TestBrainWebSocket:
     """Tests for the Positronic Brain WebSocket /brain/ws."""
 
+    @staticmethod
+    def _authed_ws() -> MockWebSocket:
+        """MockWebSocket with a valid signed semptify_uid cookie."""
+        ws = MockWebSocket()
+        ws.cookies = {"semptify_uid": sign_user_id("GUBRAIN12345")}
+        return ws
+
     @pytest.mark.skip(reason="Positronic Brain REST router is disabled in product manifest")
     def test_brain_status_endpoint(self, test_client):
         """Test GET /brain/status works."""
@@ -234,12 +241,28 @@ class TestBrainWebSocket:
         assert "modules" in data
 
     @pytest.mark.anyio
+    async def test_brain_websocket_requires_auth(self):
+        """Unauthenticated Brain WebSocket connections are closed with 1008."""
+        from app.modules.brain.router import brain_websocket
+        from app.services.positronic_brain import get_brain
+
+        ws = MockWebSocket()  # no cookies
+        ws.queue_message({"type": "ping"})
+
+        brain = get_brain()
+        await brain_websocket(ws, brain)
+
+        assert ws.closed is True
+        assert ws not in brain.websocket_clients
+        assert not any(m.get("type") == "connected" for m in ws.messages_sent)
+
+    @pytest.mark.anyio
     async def test_brain_websocket_connection(self):
         """Test Brain WebSocket connection sends initial state."""
         from app.modules.brain.router import brain_websocket
         from app.services.positronic_brain import get_brain
 
-        ws = MockWebSocket()
+        ws = self._authed_ws()
         ws.queue_message({"type": "ping"})
 
         brain = get_brain()
@@ -259,7 +282,7 @@ class TestBrainWebSocket:
         from app.modules.brain.router import brain_websocket
         from app.services.positronic_brain import get_brain
 
-        ws = MockWebSocket()
+        ws = self._authed_ws()
         ws.queue_message({"type": "ping"})
 
         brain = get_brain()
@@ -274,7 +297,7 @@ class TestBrainWebSocket:
         from app.modules.brain.router import brain_websocket
         from app.services.positronic_brain import get_brain
 
-        ws = MockWebSocket()
+        ws = self._authed_ws()
         ws.queue_message({"type": "get_state"})
 
         brain = get_brain()
@@ -290,7 +313,7 @@ class TestBrainWebSocket:
         from app.modules.brain.router import brain_websocket
         from app.services.positronic_brain import get_brain
 
-        ws = MockWebSocket()
+        ws = self._authed_ws()
         ws.queue_message({"type": "trigger_workflow", "workflow_name": "test_workflow", "data": {"test": True}})
 
         brain = get_brain()
@@ -306,7 +329,7 @@ class TestBrainWebSocket:
         from app.modules.brain.router import brain_websocket
         from app.services.positronic_brain import get_brain
 
-        ws = MockWebSocket()
+        ws = self._authed_ws()
         ws.queue_message({"type": "ping"})
 
         brain = get_brain()

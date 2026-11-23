@@ -153,6 +153,28 @@ class TestVoicePostReviewFlow:
             assert posts == []
 
     @pytest.mark.asyncio
+    async def test_decline_drains_pending_lane(self):
+        """Regression: a declined post must leave the review queue —
+        is_published=False used to keep it 'pending' forever."""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as anon:
+            await anon.post(
+                "/api/voice-post",
+                json={"kind": "opinion", "message": "off-topic rant"},
+            )
+
+        async with _elev_client() as admin:
+            pending = (await admin.get("/admin/api/public-forms/pending")).json()
+            assert len(pending["voice_posts"]) == 1
+            post_id = pending["voice_posts"][0]["id"]
+            await admin.post(
+                f"/admin/api/public-forms/voice-posts/{post_id}",
+                json={"action": "decline"},
+            )
+
+            pending = (await admin.get("/admin/api/public-forms/pending")).json()
+            assert all(p["id"] != post_id for p in pending["voice_posts"])
+
+    @pytest.mark.asyncio
     async def test_answer_requires_text(self):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as anon:
             await anon.post(
@@ -361,6 +383,26 @@ class TestToolRequestReviewFlow:
             reqs = (await anon.get("/api/tool-requests")).json()["requests"]
             assert len(reqs) == 1
             assert reqs[0]["response"].startswith("On the list")
+
+    @pytest.mark.asyncio
+    async def test_decline_drains_pending_lane(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as anon:
+            await anon.post(
+                "/api/tool-request",
+                json={"message": "build me a crypto casino"},
+            )
+
+        async with _elev_client() as admin:
+            pending = (await admin.get("/admin/api/public-forms/pending")).json()
+            assert len(pending["tool_requests"]) == 1
+            req_id = pending["tool_requests"][0]["id"]
+            await admin.post(
+                f"/admin/api/public-forms/tool-requests/{req_id}",
+                json={"action": "decline"},
+            )
+
+            pending = (await admin.get("/admin/api/public-forms/pending")).json()
+            assert all(r["id"] != req_id for r in pending["tool_requests"])
 
 
 class TestStoryReviewFlow:

@@ -95,6 +95,13 @@
     - AGENTS.md
   category: admin
 
+- doc: admin/SEMPTIFY_MAILBOXES.md
+  covers:
+    - app/services/email_service.py
+    - app/core/config.py
+    - .env.example
+  category: admin
+
 - doc: admin/Semptify_Site_GUI_Framework.md
   covers:
     - app/templates
@@ -152,6 +159,15 @@
     - app/core/security_middleware.py
     - app/core/security_headers.py
     - app/core/security_config.py
+  category: admin
+
+# Process doc: the [considering] -> [evaluated] gate referenced by the
+# retired archive BACKLOG; §3 gates privacy-touching ideas.
+- doc: admin/SCOPE_EVALUATION_CHECKLIST.md
+  covers:
+    - docs/admin/PRIVACY_AND_ACCEPTABLE_USE_SSOT.md
+    - app/core/upl_guardrails.py
+    - app/core/privacy_aup.py
   category: admin
 
 # ---------------------------------------------------------------------------
@@ -233,6 +249,14 @@
     - app/core/logging_middleware.py
     - app/core/logging_service.py
     - app/core/audit_logger.py
+  category: adr
+
+- doc: adr/0011-user-data-oauth-storage-link-layer.md
+  covers:
+    - app/services/storage
+    - app/services/storage/local_disk.py
+    - app/core/storage_middleware.py
+    - app/modules/storage
   category: adr
 
 - doc: planning/B_SIDE_DISPLAY_WINDOW_MAP.md

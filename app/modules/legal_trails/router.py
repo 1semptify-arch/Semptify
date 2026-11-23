@@ -44,9 +44,10 @@ class ViolationType(StrEnum):
 
 class StatuteType(StrEnum):
     MN_504B_177 = "MN 504B.177"  # Late fee limits
-    MN_504B_285 = "MN 504B.285"  # Retaliatory eviction
-    MN_504B_161 = "MN 504B.161"  # Tenant remedies
-    MN_504B_211 = "MN 504B.211"  # Security deposits
+    MN_504B_285 = "MN 504B.285"  # Retaliation defense to eviction
+    MN_504B_161 = "MN 504B.161"  # Covenants of habitability
+    MN_504B_211 = "MN 504B.211"  # Tenant right to privacy (landlord entry)
+    MN_504B_178 = "MN 504B.178"  # Security deposits
     HUD_FAIR_HOUSING = "HUD Fair Housing Act"
     CIVIL_FRAUD = "Civil Fraud"
     CIVIL_COERCION = "Civil Coercion"
@@ -173,19 +174,26 @@ class FilingWindow(BaseModel):
 
 # ============== STATUTE OF LIMITATIONS ==============
 
+# Verified 2026-11-13 against primary sources. Civil claims: Minn. Stat.
+# 541.05, subd. 1 — six years for contract, statutory-liability, tort, and
+# fraud actions (fraud accrues on discovery of the facts, so this table may
+# understate the time left on a fraud claim). HUD administrative complaints:
+# 42 U.S.C. 3610(a)(1)(A)(i) — one year. Deliberately omitted: criminal
+# deadlines (prosecutors file those, not tenants; the MN default is 3 years
+# under 628.26(m), with longer windows only for specific theft/fraud clauses)
+# and license complaints (the Dept. of Commerce accepts them with no fixed
+# statutory filing deadline — do not display an invented window).
 STATUTE_OF_LIMITATIONS = {
-    "civil_retaliation": 6,
-    "civil_fraud": 6,
-    "civil_coercion": 6,
-    "civil_breach": 6,
-    "hud_complaint": 1,
-    "criminal_theft": 5,
-    "criminal_fraud": 6,
-    "license_complaint": 2,
+    "civil_retaliation": 6,  # Minn. Stat. 541.05, subd. 1(2)
+    "civil_fraud": 6,  # Minn. Stat. 541.05, subd. 1(6) — runs from discovery
+    "civil_coercion": 6,  # Minn. Stat. 541.05, subd. 1(5)
+    "civil_breach": 6,  # Minn. Stat. 541.05, subd. 1(1)
+    "hud_complaint": 1,  # 42 U.S.C. 3610(a)(1)(A)(i)
 }
 
 # Which limitation clock matters most for each logged violation type.
 # Display guidance only — the page labels these as common windows, not advice.
+# A value of None means no fixed statutory window exists — no row is shown.
 _VIOLATION_TO_CLAIM = {
     ViolationType.RETALIATION: "civil_retaliation",
     ViolationType.EVICTION_THREAT: "civil_retaliation",
@@ -197,7 +205,7 @@ _VIOLATION_TO_CLAIM = {
     ViolationType.DISCRIMINATION: "hud_complaint",
     ViolationType.FALSE_LATE_FEE: "civil_breach",
     ViolationType.MISUSE_FEDERAL_FUNDS: "civil_fraud",
-    ViolationType.LICENSE_VIOLATION: "license_complaint",
+    ViolationType.LICENSE_VIOLATION: None,
 }
 
 _URGENCY_ORDER = {"expired": 0, "critical": 1, "warning": 2, "safe": 3}
@@ -241,6 +249,8 @@ def _window_for_violation(record: dict) -> dict | None:
     except ValueError:
         vtype = None
     claim_type = _VIOLATION_TO_CLAIM.get(vtype, "civil_breach")
+    if claim_type is None:
+        return None
     window = _filing_window(occurred, claim_type, STATUTE_OF_LIMITATIONS[claim_type])
     window["record_id"] = record.get("id")
     window["violation_type"] = record.get("violation_type")
@@ -250,18 +260,24 @@ def _window_for_violation(record: dict) -> dict | None:
 _STATUTES_INFO = {
     "MN 504B.177": {
         "title": "Late Fees",
-        "summary": "Late fees must be in lease and cannot exceed 8% of overdue rent",
+        "summary": "Late fees must be agreed to in writing and cannot exceed 8% of the overdue rent payment; for subsidized tenancies the cap applies to the tenant's share only",
         "url": "https://www.revisor.mn.gov/statutes/cite/504B.177",
+        "review_status": "VETTED",
+        "last_verified": "2026-11-13",
     },
     "MN 504B.285": {
-        "title": "Retaliatory Eviction",
-        "summary": "Landlords cannot evict tenants for asserting legal rights",
+        "title": "Retaliation Defense",
+        "summary": "Retaliation for asserting legal rights or reporting code violations is a defense to an eviction; when the eviction follows within 90 days the landlord must prove it was not retaliatory (see also 504B.441)",
         "url": "https://www.revisor.mn.gov/statutes/cite/504B.285",
+        "review_status": "VETTED",
+        "last_verified": "2026-11-13",
     },
     "MN 504B.161": {
         "title": "Covenants of Habitability",
-        "summary": "Landlords must keep rentals fit and in reasonable repair; remedies go through a rent escrow action",
+        "summary": "Landlords must keep rentals fit and in reasonable repair, including 68°F heat October–April; the main remedy is a rent escrow action (504B.385)",
         "url": "https://www.revisor.mn.gov/statutes/cite/504B.161",
+        "review_status": "VETTED",
+        "last_verified": "2026-11-13",
     },
 }
 
@@ -472,8 +488,8 @@ async def add_eviction_threat(threat: EvictionThreat, user: UserContext = Depend
     return {
         "message": "Eviction threat logged",
         "threat_id": record["id"],
-        "warning": "If this was retaliatory, you may have a claim under MN 504B.285",
-        "statute_of_limitations": "6 years for civil retaliation claims",
+        "warning": "If this was retaliation for asserting your rights or reporting code violations, it can be a defense to the eviction under MN 504B.285 subd. 2, and MN 504B.441 separately bars eviction, rent increases, or service cuts meant as a penalty",
+        "statute_of_limitations": "6 years for a related civil claim (MN Stat. 541.05)",
         "threat": record,
     }
 
@@ -507,7 +523,7 @@ async def add_late_fee_violation(fee: LateFeeViolation, user: UserContext = Depe
 
     violations = []
     if not fee.lease_allows_late_fee:
-        violations.append("Late fee charged without lease authorization (MN 504B.177)")
+        violations.append("Late fee charged without a written agreement authorizing it (MN 504B.177)")
     if exceeds:
         violations.append(f"Late fee exceeds 8% cap by ${record['overcharge_amount']:.2f} (MN 504B.177)")
 
@@ -547,7 +563,7 @@ async def calculate_late_fee_legal_max(
         "days_late": days_late,
         "legal_max_late_fee": legal_max,
         "statute": "MN 504B.177",
-        "note": "Late fees cannot exceed 8% of overdue rent and must be specified in lease",
+        "note": "Late fees cannot exceed 8% of the overdue rent payment and must be agreed to in writing. If the rent is subsidized under a housing assistance payments contract, the cap applies only to the tenant's share of the rent.",
     }
 
 
@@ -567,7 +583,7 @@ async def add_broker_oversight(broker: BrokerOversight, user: UserContext = Depe
     return {
         "message": "Broker oversight record created",
         "broker": record,
-        "note": "As the broker of record, this person has legal responsibility for ensuring compliance with Minnesota housing laws and ethical conduct of property managers.",
+        "note": "A broker can be disciplined for failing to reasonably supervise the brokers, salespersons, or closing agents acting under them, when that failure causes injury or harm to the public (MN Stat. 82.82, subd. 1(d)).",
     }
 
 
@@ -705,20 +721,48 @@ async def generate_retaliation_complaint(
         if record:
             threats.append(record)
 
+    allegations = []
+    for v in violations:
+        when = v.get("date_occurred") or "a date to be confirmed"
+        who = v.get("perpetrator") or "the respondents"
+        vtype = (v.get("violation_type") or "violation").replace("_", " ")
+        allegations.append(
+            f"On or about {when}, {who} committed a {vtype}: "
+            f"{v.get('description') or 'details in the attached records'}."
+        )
+    for t in threats:
+        when = t.get("date_threatened") or "a date to be confirmed"
+        who = t.get("perpetrator") or "the respondents"
+        method = t.get("threat_method") or "an unspecified method"
+        allegations.append(
+            f"On or about {when}, {who} threatened eviction by {method}: "
+            f"{t.get('threat_content') or 'details in the attached records'}."
+        )
+        if t.get("prior_complaint_date"):
+            allegations.append(
+                f"The threat followed a protected complaint made on or about "
+                f"{t['prior_complaint_date']}; if it came within 90 days of that "
+                f"complaint, the burden shifts to the landlord to prove it was "
+                f"not retaliatory (MN 504B.285, subd. 2; MN 504B.441)."
+            )
+    if not allegations:
+        allegations.append(
+            "Allegations to be completed from the tenant's records before this draft is used."
+        )
+
     return {
         "status": "draft",
         "draft_note": _DRAFT_NOTE,
         "title": "COMPLAINT FOR RETALIATORY EVICTION — DRAFT",
-        "statute": "Minnesota Statute 504B.285",
+        "statute": "Minnesota Statutes 504B.285, subd. 2 (retaliation defense) and 504B.441",
         "complainant": tenant_name,
         "property": property_address,
         "respondents": [landlord_name, management_company],
-        "allegations": [],
+        "allegations": allegations,
         "relief_sought": [
-            "Injunctive relief prohibiting eviction",
+            "Dismissal of the retaliatory eviction (retaliation defense, MN 504B.285 subd. 2)",
             "Actual damages",
-            "Attorney's fees",
-            "Civil penalty up to $500",
+            "Court costs and attorney fees where authorized by law",
         ],
         "violations_referenced": violations,
         "threats_documented": threats,
@@ -749,9 +793,10 @@ async def generate_license_complaint(
             violations_summary,
         ],
         "statutes_violated": [
-            "MN Statute 82.81 - Broker Duties",
+            "MN Statute 82.81 - Prohibited practices, incl. fraudulent, deceptive, or dishonest practices (subd. 12)",
+            "MN Statute 82.82 - License discipline; failure to reasonably supervise (subd. 1(d))",
             "MN Statute 504B.177 - Late Fee Violations",
-            "MN Statute 504B.285 - Retaliatory Eviction",
+            "MN Statute 504B.285 - Retaliation Defense",
         ],
         "relief_sought": ["Investigation of broker practices", "License suspension or revocation", "Civil penalties"],
         "filing_info": {

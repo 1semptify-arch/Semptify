@@ -22,6 +22,26 @@ Known churn: Sen. Port (Housing chair) is not running again → Sen. Mohamed is 
 continuity pick. Gov. Walz is not seeking re-election → agency leadership (MHFA,
 Commerce, Revenue) will likely turn over with the new governor in January.
 
+### Post-election addendum — 2026-11-13 (unofficial until canvass certifies ~Nov 19)
+
+- **DFL trifecta.** House flips to a DFL majority (~77-57), ending the 67-67
+  co-chair gate — Housing reverts to a single DFL chair. Senate DFL grows to
+  ~39-28. Recounts pending in SD4, SD38, HD32A; control is unaffected.
+- **Amy Klobuchar elected Governor** (sworn ~Jan 4-5; resigns her U.S. Senate
+  seat by Jan 3 — a gubernatorial appointment fills it). Lt. Gov. **Peggy
+  Flanagan** won the open U.S. Senate seat.
+- **Carrier list impact:** Howard (re-elected) is the presumptive Housing chair;
+  **Igo moves to ranking member** (per 11/7 champion-map refresh — outreach kit
+  #1–#2 co-chair phrasing needs the swap before send, already on TASKS). Port
+  retired — Senate Housing chair is named at December org sessions; Mohamed
+  stays the continuity pick.
+- **Agency side:** Commissioner Ho's seat turns over with the Klobuchar
+  administration (~Jan) — the new governor names commissioners. **Baumtrog
+  (deputy commissioner) is unaffected** and remains the MHFA pilot door.
+- **Refresh plan stands:** re-pull roster/committee URLs after the Nov 19
+  canvass certification → December organizational sessions, then send the
+  held wave to whoever holds the gavel.
+
 ---
 
 ## HOW THIS BILL MOVES (who has clout, in order)
@@ -29,7 +49,9 @@ Commerce, Revenue) will likely turn over with the new governor in January.
 1. **A member must carry it.** Bill needs a chief author in each chamber. House:
    Housing Finance & Policy co-chairs decide what gets heard — **Howard (DFL) and
    Igo (R)** — the House is tied 67-67 under a power-sharing deal, so BOTH co-chairs
-   must agree. Senate: **Port** chairs Housing until January; **Mohamed** is continuity.
+   must agree. *(67-67 tie ended Nov 3 — House now DFL-majority; Howard presumptive
+   chair, Igo ranking member. See the 11/13 addendum above.)* Senate: **Port**
+   chairs Housing until January; **Mohamed** is continuity.
 2. **Committee staff are the real door.** Staff briefings convert before member asks —
    committee administrators control the hearing calendar.
 3. **The committee gauntlet:** Housing → Taxes (M1PR credit rail) → Commerce

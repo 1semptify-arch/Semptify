@@ -49,10 +49,12 @@ def test_onboarding_oauth_only_mints_tenant():
     assert PRO_ROLES.isdisjoint(onboarding_oauth.ALLOWED_ROLES)
 
 
-def test_storage_oauth_minting_is_tenant_only():
-    """Every new-account minting point in storage OAuth is tenant-gated."""
-    assert storage_module.MINTABLE_ROLES == {"tenant", "user"}
-    assert PRO_ROLES.isdisjoint(storage_module.MINTABLE_ROLES)
+def test_storage_oauth_mintable_roles():
+    """ROLE REVIVAL (Brad, 2026-11-19): storage OAuth may mint tenant plus the
+    client-facing professional roles (advocate, legal) via ?role=. 'admin' is
+    NOT mintable through OAuth — ops-level access is minted server-side only."""
+    assert storage_module.MINTABLE_ROLES == {"tenant", "user", "advocate", "legal"}
+    assert "admin" not in storage_module.MINTABLE_ROLES
 
 
 def test_no_role_switch_surface():
@@ -67,20 +69,27 @@ def test_no_role_switch_surface():
     assert "/role" not in route_paths
 
 
-def test_user_ids_always_decode_as_tenant():
-    """STATELESS TENANT-ONLY: any role letter in a user_id — valid, legacy,
-    or forged — decodes as tenant. No access can ever derive a pro role."""
+def test_user_ids_decode_real_role():
+    """ROLE REVIVAL (Brad, 2026-11-19): the role letter in a user_id decodes
+    as written — tenant, advocate, legal, admin all decode to their role.
+    Forgery protection comes from the HMAC cookie signature and from mint
+    gating (onboarding ALLOWED_ROLES / storage MINTABLE_ROLES), not from
+    decode coercion."""
     from app.core.user_id import parse_user_id, generate_user_id
 
-    # Every possible role letter decodes as tenant
-    for letter in "UAMLVJCSPR":
+    expected = {
+        "U": "tenant", "A": "admin", "M": "manager", "L": "legal",
+        "V": "advocate", "J": "judge", "C": "multi_client_advocate",
+        "S": "donor_supporter", "R": "researcher", "P": "developer",
+    }
+    for letter, want in expected.items():
         provider, role, _ = parse_user_id(f"G{letter}abc12345")
-        assert role == "tenant", f"letter {letter} decoded as {role}"
+        assert role == want, f"letter {letter} decoded as {role}, want {want}"
 
-    # Minting always produces a tenant ('U') code, whatever role is asked for
-    for role in ("tenant", "user", "admin", "legal", "advocate", "manager"):
+    # Minting produces the letter for the requested role
+    for role, letter in (("tenant", "U"), ("legal", "L"), ("advocate", "V"), ("admin", "A")):
         uid = generate_user_id("google_drive", role)
-        assert uid[1] == "U", f"generate_user_id({role}) minted letter {uid[1]}"
+        assert uid[1] == letter, f"generate_user_id({role}) minted letter {uid[1]}, want {letter}"
 
 
 def test_only_tenant_role_config_remains():

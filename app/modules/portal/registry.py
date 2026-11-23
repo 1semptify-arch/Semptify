@@ -164,7 +164,7 @@ class PortalRegistry:
             name="Legal Research on Landlords",
             short_description="Research landlord records, court filings, and property history.",
             cta_label="Research Tools",
-            cta_path="/toolbox/landlord_research",
+            cta_path="/legal-research",
             icon="",
             category="legal",
             order=10,

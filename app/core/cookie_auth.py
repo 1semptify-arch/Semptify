@@ -102,6 +102,7 @@ def set_auth_cookie(
         max_age:   Cookie lifetime in seconds (default 1 year)
         secure:    True in production (HTTPS), False for localhost HTTP
     """
+    from app.core.session_idle import set_idle_cookie
     from app.core.user_id import COOKIE_USER_ID
 
     response.set_cookie(
@@ -114,9 +115,14 @@ def set_auth_cookie(
         samesite="lax",
     )
 
+    # G10.8: every issued session starts with a fresh idle marker — atomic
+    # with the auth cookie so re-auth after an idle timeout re-arms both.
+    set_idle_cookie(response, user_id, max_age=max_age, secure=secure)
+
 
 def clear_auth_cookie(response):
     """Clear the authentication cookie."""
+    from app.core.session_idle import clear_idle_cookie
     from app.core.user_id import COOKIE_USER_ID
 
     response.delete_cookie(
@@ -126,3 +132,4 @@ def clear_auth_cookie(response):
         secure=True,  # Assume secure for deletion
         samesite="lax",
     )
+    clear_idle_cookie(response)

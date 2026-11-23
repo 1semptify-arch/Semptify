@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "version": "1.2",
-    "last_updated": "2026-11-06",
+    "version": "1.3",
+    "last_updated": "2026-11-13",
     "complete_states": [
       "AK",
       "AL",
@@ -56,7 +56,13 @@
       "ND",
       "SD",
       "WI"
-    ]
+    ],
+    "depth_legend": {
+      "full": "All law sections plus forms_templates and special_programs (11 states: CA FL GA IL MI MN NC NY OH PA TX)",
+      "substantial": "All law-bearing sections present; missing forms_templates/special_programs enrichment (33 states)",
+      "crisis-tier": "Verified crisis fields only - notice, deposit, entry, eviction, repairs, sources (6 states: IA IN MO ND SD WI; status=partial)"
+    },
+    "verification_note": "Per-state last_verified is the date of the last verbatim primary-source pass over the populated fields (2026-09-19..21 corpus vetting, handoffs/explanation-corpus-vetting-report-2026-09-21.md; crisis-tier fields additionally verified 2026-09-07). It records when populated fields were checked - it is NOT a completeness claim. status=complete means the row schema is filled, not that depth equals the 11 full states; use data_depth to distinguish. Fields populated after 2026-09-21 are unverified."
   },
   "states": {
     "MN": {
@@ -64,6 +70,8 @@
       "name": "Minnesota",
       "nickname": "Land of 10,000 Lakes",
       "status": "complete",
+      "data_depth": "full",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Minnesota Statutes Chapter 504B",
         "statute_url": "https://www.revisor.mn.gov/statutes/cite/504B",
@@ -245,6 +253,8 @@
       "name": "California",
       "nickname": "Golden State",
       "status": "complete",
+      "data_depth": "full",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "California Civil Code §§1940-1954.05; Code of Civil Procedure §1161-1179a (unlawful detainer)",
         "statute_url": "https://leginfo.legislature.ca.gov/faces/codes_displayText.xhtml?division=3.&part=2.&lawCode=CIV&title=5.",
@@ -417,6 +427,8 @@
       "name": "New York",
       "nickname": "Empire State",
       "status": "complete",
+      "data_depth": "full",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "NY Real Property Law (RPL) Article 7; RPAPL Article 7; Multiple Dwelling Law; NYC Housing Maintenance Code",
         "statute_url": "https://www.nysenate.gov/legislation/laws/RPP",
@@ -592,6 +604,8 @@
       "name": "Texas",
       "nickname": "Lone Star State",
       "status": "complete",
+      "data_depth": "full",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Texas Property Code Chapter 92 (Residential Tenancies)",
         "statute_url": "https://statutes.capitol.texas.gov/Docs/PR/htm/PR.92.htm",
@@ -757,6 +771,8 @@
       "name": "Florida",
       "nickname": "Sunshine State",
       "status": "complete",
+      "data_depth": "full",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Florida Statutes Chapter 83, Part II (Residential Tenancies)",
         "statute_url": "http://www.leg.state.fl.us/statutes/index.cfm?App=display_statute&URL=0000-0999/0083/PartII/",
@@ -920,6 +936,8 @@
       "name": "Illinois",
       "nickname": "Prairie State",
       "status": "complete",
+      "data_depth": "full",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "765 ILCS 705 (Mobile Home Landlord-Tenant), 740 ILCS 700 (Security Deposit Return Act); Chicago Residential Landlord and Tenant Ordinance (RLTO) for Chicago",
         "statute_url": "https://www.ilga.gov/legislation/ilcs/ilcs.asp?ChapterID=15",
@@ -1097,6 +1115,8 @@
       "name": "Pennsylvania",
       "nickname": "Keystone State",
       "status": "complete",
+      "data_depth": "full",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Pennsylvania Landlord and Tenant Act of 1951 (68 P.S. § 250.101 et seq.)",
         "statute_url": "https://www.legis.state.pa.us/cfdocs/legis/LI/consol_check.cfm?txtType=HTM&ttl=68&div=0.&chpt=25.",
@@ -1266,6 +1286,8 @@
       "code": "WA",
       "name": "Washington",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Residential Landlord-Tenant Act — RCW 59.18",
         "statute_url": "https://app.leg.wa.gov/rcw/default.aspx?cite=59.18",
@@ -1357,6 +1379,8 @@
       "code": "MA",
       "name": "Massachusetts",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "MGL c.186, c.111; State Sanitary Code 105 CMR 410",
         "statute_url": "https://malegislature.gov/Laws/GeneralLaws/PartII/TitleI/Chapter186",
@@ -1442,6 +1466,8 @@
       "code": "OR",
       "name": "Oregon",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Oregon Residential Landlord and Tenant Act — ORS ch. 90",
         "statute_url": "https://www.oregonlegislature.gov/bills_laws/ors/ors090.html",
@@ -1519,6 +1545,8 @@
       "code": "CO",
       "name": "Colorado",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "CRS 38-12 (Residential Premises); CRS 13-40 (eviction)",
         "statute_url": "https://leg.colorado.gov/agencies/office-legislative-legal-services/colorado-revised-statutes",
@@ -1593,6 +1621,8 @@
       "name": "Michigan",
       "nickname": "Great Lakes State",
       "status": "complete",
+      "data_depth": "full",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Michigan Landlord and Tenant Relationships Act (MCL § 554.601 et seq.) and Truth in Renting Act (MCL § 554.631 et seq.)",
         "statute_url": "https://www.legislature.mi.gov/(S(0eqr3o4bnhpeb5h2jqc1hq))/mileg.aspx?page=getObject&objectName=mcl-554-Act-348",
@@ -1766,6 +1796,8 @@
       "name": "Ohio",
       "nickname": "Buckeye State",
       "status": "complete",
+      "data_depth": "full",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Ohio Landlord-Tenant Act (ORC § 5321.01 et seq.)",
         "statute_url": "https://codes.ohio.gov/ohio-revised-code/chapter-5321",
@@ -1940,6 +1972,8 @@
       "name": "North Carolina",
       "nickname": "Tar Heel State",
       "status": "complete",
+      "data_depth": "full",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "North Carolina Residential Rental Agreements Act (N.C.G.S. § 42-38 et seq.)",
         "statute_url": "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/ByChapter/Chapter_42.html",
@@ -2112,6 +2146,8 @@
       "name": "Georgia",
       "nickname": "Peach State",
       "status": "complete",
+      "data_depth": "full",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Georgia Landlord-Tenant Law (O.C.G.A. § 44-7-1 et seq.)",
         "statute_url": "https://codes.ols.dev/title-44/chapter-7/",
@@ -2285,6 +2321,8 @@
       "code": "AZ",
       "name": "Arizona",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Arizona Residential Landlord and Tenant Act — ARS 33-1301 et seq.",
         "statute_url": "https://www.azleg.gov/arsDetail/?title=33",
@@ -2362,6 +2400,8 @@
       "code": "VA",
       "name": "Virginia",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Virginia Residential Landlord and Tenant Act — §55.1-1200 et seq.",
         "statute_url": "https://law.lis.virginia.gov/vacode/title55.1/subtitleII/chapter12/",
@@ -2440,6 +2480,8 @@
       "code": "NJ",
       "name": "New Jersey",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Anti-Eviction Act N.J.S.A. 2A:18-61.1; deposits 46:8-19 et seq.",
         "statute_url": "https://lis.njleg.state.nj.us/",
@@ -2514,6 +2556,8 @@
       "code": "WI",
       "name": "Wisconsin",
       "status": "partial",
+      "data_depth": "crisis-tier",
+      "last_verified": "2026-09-21",
       "stub_url": "https://core.tenantresourcecenter.org/wisconsin",
       "notice_requirements": {
         "nonpayment": "5-day written pay-or-vacate notice for month-to-month or lease of 1 year or less (Wis. Stat. 704.17(1p)(a) and (2)(a)). Tenant can stop the eviction by paying rent within that window.",
@@ -2568,6 +2612,8 @@
       "code": "MO",
       "name": "Missouri",
       "status": "partial",
+      "data_depth": "crisis-tier",
+      "last_verified": "2026-09-21",
       "stub_url": "https://www.mobar.org/attorneysearch/",
       "notice_requirements": {
         "nonpayment": "No formal notice-to-pay period required before filing a rent-and-possession action; landlord may file as soon as rent is past due, after a demand for payment (RSMo 535.010, 535.020)",
@@ -2623,6 +2669,8 @@
       "code": "AL",
       "name": "Alabama",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Ala. Code 35-9A (URLTA, since 2007)",
         "statute_url": "https://alisondb.legislature.state.al.us/alison/CodeOfAlabama/1975/coatoc.htm",
@@ -2691,6 +2739,8 @@
       "code": "AK",
       "name": "Alaska",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "AS 34.03 (Uniform Residential Landlord and Tenant Act)",
         "statute_url": "https://www.akleg.gov/basis/statutes.asp#34.03",
@@ -2759,6 +2809,8 @@
       "code": "AR",
       "name": "Arkansas",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "A.C.A. Title 18 (18-17 residential)",
         "statute_url": "https://www.arkleg.state.ar.us/ArkansasLaw",
@@ -2831,6 +2883,8 @@
       "code": "CT",
       "name": "Connecticut",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "CGS Title 47a — Landlord and Tenant",
         "statute_url": "https://www.cga.ct.gov/current/pub/chap_830.htm",
@@ -2909,6 +2963,8 @@
       "code": "DE",
       "name": "Delaware",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "25 Del.C. Part III (Residential Landlord-Tenant Code)",
         "statute_url": "https://delcode.delaware.gov/title25/",
@@ -2981,6 +3037,8 @@
       "code": "HI",
       "name": "Hawaii",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "HRS ch. 521 (Residential Landlord-Tenant Code)",
         "statute_url": "https://www.capitol.hawaii.gov/hrscurrent/Vol12_Ch0501-0588/HRS0521/",
@@ -3049,6 +3107,8 @@
       "code": "ID",
       "name": "Idaho",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Idaho Code Title 6 (55-208 deposits; 6-303 eviction)",
         "statute_url": "https://legislature.idaho.gov/statutesrules/idstat/",
@@ -3117,6 +3177,8 @@
       "code": "IA",
       "name": "Iowa",
       "status": "partial",
+      "data_depth": "crisis-tier",
+      "last_verified": "2026-09-21",
       "stub_url": "https://www.iowalegalaid.org/issues/housing",
       "notice_requirements": {
         "nonpayment": "3-day written notice to pay rent or the landlord may terminate the rental agreement (Iowa Code 562A.27(2))",
@@ -3170,6 +3232,8 @@
       "code": "KS",
       "name": "Kansas",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "K.S.A. 58-2540 et seq. (URLTA)",
         "statute_url": "https://www.ksrevisor.org/statutes/ksa_ch58.html",
@@ -3238,6 +3302,8 @@
       "code": "KY",
       "name": "Kentucky",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "KRS ch. 383 (URLTA — applies ONLY in adopting cities/counties)",
         "statute_url": "https://legislature.ky.gov/Law/Statutes",
@@ -3314,6 +3380,8 @@
       "code": "LA",
       "name": "Louisiana",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Louisiana Civil Code arts. 2668-2729",
         "statute_url": "https://legis.la.gov/legis/law.aspx?d=110540",
@@ -3390,6 +3458,8 @@
       "code": "ME",
       "name": "Maine",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "14 M.R.S. §6001 et seq.",
         "statute_url": "https://legislature.maine.gov/statutes/14/title14ch709sec0.html",
@@ -3458,6 +3528,8 @@
       "code": "MD",
       "name": "Maryland",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Real Property §8 (Landlord and Tenant)",
         "statute_url": "https://mgaleg.maryland.gov/mgawebsite/Laws/Statutes",
@@ -3536,6 +3608,8 @@
       "code": "MS",
       "name": "Mississippi",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Miss. Code 89-7/89-8 (Residential Landlord and Tenant Act)",
         "statute_url": "https://www.lexisnexis.com/hottopics/mscode/",
@@ -3608,6 +3682,8 @@
       "code": "MT",
       "name": "Montana",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "MCA Title 70 ch. 24 (URLTA)",
         "statute_url": "https://leg.mt.gov/bills/mca/title_0700/chapter_0240/",
@@ -3676,6 +3752,8 @@
       "code": "NE",
       "name": "Nebraska",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Neb. Rev. Stat. 76-1401 et seq. (URLTA)",
         "statute_url": "https://nebraskalegislature.gov/laws/browse-statutes.php",
@@ -3744,6 +3822,8 @@
       "code": "NV",
       "name": "Nevada",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "NRS ch. 118A",
         "statute_url": "https://www.leg.state.nv.us/nrs/NRS-118A.html",
@@ -3816,6 +3896,8 @@
       "code": "NH",
       "name": "New Hampshire",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "RSA 540 and 540-A",
         "statute_url": "https://www.gencourt.state.nh.us/rsa/html/LV/540-A/540-A-mrg.htm",
@@ -3884,6 +3966,8 @@
       "code": "NM",
       "name": "New Mexico",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "NMSA 47-8 (Uniform Owner-Resident Relations Act)",
         "statute_url": "https://nmonesource.com/nmos/nmsa/en/nav_date.do",
@@ -3956,6 +4040,8 @@
       "code": "ND",
       "name": "North Dakota",
       "status": "partial",
+      "data_depth": "crisis-tier",
+      "last_verified": "2026-09-21",
       "stub_url": "https://www.ndcourts.gov/legal-self-help",
       "notice_requirements": {
         "nonpayment": "3-day notice of intention to evict; if nonpayment is the only ground, tenant has 3 days to pay in full or move out (NDCC 47-32-01, 47-32-02; ND Courts eviction forms)",
@@ -4009,6 +4095,8 @@
       "code": "OK",
       "name": "Oklahoma",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "41 O.S. §101 et seq. (URLTA)",
         "statute_url": "https://oksenate.gov/publications/statutes",
@@ -4077,6 +4165,8 @@
       "code": "RI",
       "name": "Rhode Island",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "R.I. Gen. Laws ch. 34-18 (URLTA)",
         "statute_url": "http://webserver.rilin.state.ri.us/Statutes/TITLE34/34-18/INDEX.HTM",
@@ -4145,6 +4235,8 @@
       "code": "SC",
       "name": "South Carolina",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "S.C. Code 27-40 (URLTA)",
         "statute_url": "https://www.scstatehouse.gov/code/t27c040.php",
@@ -4213,6 +4305,8 @@
       "code": "SD",
       "name": "South Dakota",
       "status": "partial",
+      "data_depth": "crisis-tier",
+      "last_verified": "2026-09-21",
       "stub_url": "https://ujslawhelp.sd.gov/LegalTopics/For-Landlords-and-Tenants.aspx",
       "notice_requirements": {
         "nonpayment": "No notice to quit required since July 1, 2024; a landlord may file an eviction action after rent is 3 days late (SDCL 21-16-1(4); SB 90 repealed SDCL 21-16-2)",
@@ -4263,6 +4357,8 @@
       "code": "TN",
       "name": "Tennessee",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Tenn. Code 66-28 (URLTA — applies in counties over ~75,000 population)",
         "statute_url": "https://law.justia.com/codes/tennessee/title-66/chapter-28/",
@@ -4343,6 +4439,8 @@
       "code": "UT",
       "name": "Utah",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Utah Code 57-17 (deposits), 57-22 (Fit Premises Act)",
         "statute_url": "https://le.utah.gov/xcode/Title57/Chapter22/",
@@ -4415,6 +4513,8 @@
       "code": "VT",
       "name": "Vermont",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "9 V.S.A. ch. 137",
         "statute_url": "https://legislature.vermont.gov/statutes/chapter/09/137",
@@ -4487,6 +4587,8 @@
       "code": "WV",
       "name": "West Virginia",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "W.Va. Code 37-6 / 37-6A / 55-3A",
         "statute_url": "https://code.wvlegislature.gov/37-6A-2/",
@@ -4555,6 +4657,8 @@
       "code": "WY",
       "name": "Wyoming",
       "status": "complete",
+      "data_depth": "substantial",
+      "last_verified": "2026-09-21",
       "housing_laws": {
         "landlord_tenant_act": "Wyo. Stat. 1-21 (Forcible Entry / rental)",
         "statute_url": "https://wyoleg.gov/statutes/compress/title01.pdf",
@@ -4627,6 +4731,8 @@
       "code": "IN",
       "name": "Indiana",
       "status": "partial",
+      "data_depth": "crisis-tier",
+      "last_verified": "2026-09-21",
       "stub_url": "https://iga.in.gov/laws/2024/ic/titles/32",
       "notice_requirements": {
         "nonpayment": "10-day notice to pay or quit for nonpayment (IC 32-31-1-6)",

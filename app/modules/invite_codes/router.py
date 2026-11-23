@@ -26,8 +26,21 @@ from app.core.invite_codes import (
     validate_invite_code,
 )
 from app.core.request_utils import require_request_user_id
+from app.core.security import get_rate_limiter
 
 router = APIRouter(prefix="/api/invite-codes", tags=["Invite Codes"])
+
+
+def _throttle_failed_guess(request: Request) -> None:
+    """Count failed invite-code lookups per source IP and cut off guessing."""
+    ip = request.client.host if request.client else "unknown"
+    allowed, retry_after = get_rate_limiter().check(f"invite_guess:{ip}", 60, 20)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many attempts. Please wait and try again.",
+            headers={"Retry-After": str(retry_after)},
+        )
 
 
 # =============================================================================
@@ -102,8 +115,11 @@ async def validate_code(
     Used during onboarding to check if a code is valid
     before the user completes registration.
     """
-    with get_db_session() as db:
-        is_valid, message, invite = validate_invite_code(body.code, db)
+    async with get_db_session() as db:
+        is_valid, message, invite = await validate_invite_code(body.code, db)
+
+        if not is_valid:
+            _throttle_failed_guess(request)
 
         return ValidateCodeResponse(
             valid=is_valid,
@@ -126,10 +142,11 @@ async def redeem_code(
     """
     user_id = require_request_user_id(request)
 
-    with get_db_session() as db:
-        success, message, invite = redeem_invite_code(body.code, user_id, db)
+    async with get_db_session() as db:
+        success, message, invite = await redeem_invite_code(body.code, user_id, db)
 
         if not success:
+            _throttle_failed_guess(request)
             raise HTTPException(status_code=400, detail=message)
 
         return RedeemCodeResponse(
@@ -158,6 +175,7 @@ async def create_code(
     """
     from app.core.user_context import UserRole, get_role_from_user_id
     from app.models.models import User
+    from sqlalchemy import select
 
     user_id = require_request_user_id(request)
 
@@ -166,9 +184,10 @@ async def create_code(
     if role not in [UserRole.MANAGER, UserRole.ADMIN]:
         raise HTTPException(status_code=403, detail="Only managers and admins can create invite codes")
 
-    with get_db_session() as db:
+    async with get_db_session() as db:
         # Get user's organization info
-        user = db.query(User).filter_by(id=user_id).first()
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalars().first()
         org_id = user_id[:12] if user else None  # Use part of user ID as org ID
         org_name = f"Org {user_id[:8]}" if user else "Unknown Organization"
 
@@ -185,7 +204,7 @@ async def create_code(
         )
 
         db.add(invite)
-        db.commit()
+        await db.commit()
 
         return CreateCodeResponse(
             success=True,
@@ -204,6 +223,7 @@ async def list_codes(request: Request):
     """
     from app.core.user_context import UserRole, get_role_from_user_id
     from app.models.models import User
+    from sqlalchemy import select
 
     user_id = require_request_user_id(request)
 
@@ -212,12 +232,13 @@ async def list_codes(request: Request):
     if role not in [UserRole.MANAGER, UserRole.ADMIN]:
         raise HTTPException(status_code=403, detail="Only managers and admins can view invite codes")
 
-    with get_db_session() as db:
+    async with get_db_session() as db:
         # Get user's organization
-        user = db.query(User).filter_by(id=user_id).first()
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalars().first()
         org_id = user_id[:12] if user else None
 
-        codes = get_organization_codes(org_id, db, include_inactive=True)
+        codes = await get_organization_codes(org_id, db, include_inactive=True)
 
         return {
             "codes": [
@@ -255,8 +276,8 @@ async def delete_code(code: str, request: Request):
     if role not in [UserRole.MANAGER, UserRole.ADMIN]:
         raise HTTPException(status_code=403, detail="Only managers and admins can deactivate invite codes")
 
-    with get_db_session() as db:
-        success = deactivate_invite_code(code, db)
+    async with get_db_session() as db:
+        success = await deactivate_invite_code(code, db)
 
         if not success:
             raise HTTPException(status_code=404, detail="Invite code not found")
@@ -278,8 +299,8 @@ async def code_stats(code: str, request: Request):
     if role not in [UserRole.MANAGER, UserRole.ADMIN]:
         raise HTTPException(status_code=403, detail="Only managers and admins can view code stats")
 
-    with get_db_session() as db:
-        stats = get_code_stats(code, db)
+    async with get_db_session() as db:
+        stats = await get_code_stats(code, db)
 
         if not stats:
             raise HTTPException(status_code=404, detail="Invite code not found")
