@@ -342,7 +342,7 @@
     }
 
     async function rejectDelivery(id) {
-      const reason = prompt('Please provide a reason for rejection (optional):') || '';
+      const reason = await SemptifyFeedback.prompt('Please provide a reason for rejection (optional):') || '';
       try {
         const resp = await fetch(`/api/delivery/${id}/reject`, {
           method: 'POST',

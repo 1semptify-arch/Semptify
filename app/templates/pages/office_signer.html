@@ -317,8 +317,8 @@
       clearSignature();
     }
 
-    function rejectDocument() {
-      const reason = prompt('Why are you rejecting this document? (optional)');
+    async function rejectDocument() {
+      const reason = await SemptifyFeedback.prompt('Why are you rejecting this document? (optional)');
       if (reason === null) return;
       const doc = docs[currentDoc];
       const timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });

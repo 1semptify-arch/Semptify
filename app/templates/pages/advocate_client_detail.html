@@ -528,9 +528,9 @@ document.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-doc-review]');
     if (!btn) return;
     const docId = btn.getAttribute('data-doc-review');
-    const status = window.prompt('Review status: reviewed, flagged, or approved?', 'reviewed');
+    const status = await SemptifyFeedback.prompt('Review status: reviewed, flagged, or approved?', 'reviewed');
     if (!status || !['reviewed', 'flagged', 'approved'].includes(status)) return;
-    const notes = window.prompt('Optional notes:', '') || '';
+    const notes = await SemptifyFeedback.prompt('Optional notes:', '') || '';
     try {
         const resp = await fetch(`/api/advocate/clients/${CLIENT_ID}/documents/${docId}/review`, {
             method: 'POST',
