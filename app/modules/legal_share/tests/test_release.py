@@ -115,7 +115,7 @@ def stub_tsa(monkeypatch):
         return tsa.TSAResult(
             timestamp_iso=timestamp_iso,
             document_hash=document_hash,
-            token_b64="dGVzdC1obWFjLWZhbGxiYWNrLXRva2Vu",
+            token_b64="dGVzdC1obWFjLWZhbGxiYWNrLXRva2Vu",  # pragma: allowlist secret
             tsa_backed=False,
             tsa_url=None,
             error="test stub",

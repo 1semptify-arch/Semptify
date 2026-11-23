@@ -150,6 +150,48 @@ Reset restores defaults and runs save; backdrop blocks underlying clicks.
 Note: `/api/auto-mode/*` endpoints not mounted on the verification
 instance — save toast can't fire there (pre-existing, unrelated).
 
+## Session — 2026-11-23 — main CI back to green: style guard + stub check (Devin)
+
+### Guardrail Engine Run — 2026-11-23T00:49:03+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-23T00:48:49+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+**Done:**
+- `app/templates/components/safety_exit.html` — hardcoded `#fafafa` / `#777` replaced with `var(--tone-50)` / `var(--text-muted)`.
+- `app/templates/pages/legal_dashboard.html` — `.badge` font-size `0.72rem` → `0.75rem` (style-guard floor).
+- `design-system/components/function-groups/onboarding/onboarding-tracker.html` — `{{ component_id }_next_btn` → `{{ component_id }}_next_btn` (Jinja `TemplateSyntaxError: unexpected '}'` that broke the DesignSystem Hub render). Design-system component only; not `app/modules/onboarding/`.
+- `sandbox/slice1_verify.py`, `sandbox/slice7_verify.py` — `# stub-detector: ignore` on `_NoRedirect.redirect_request()`: returning `None` is how urllib blocks redirects, not a stub.
+
+- `app/core/contract_copy.py` — humanized contract descriptions now start with a capital letter ("health check for core system." → "Health check for core system."); `tests/test_contract_copy.py` added. ACTIVE_CONTEXT refreshed (prod up, Nov ship log) and its contract-copy backlog item marked done — the central pass already existed since 2026-09-08.
+
+**Verified:** `tools/style_guard.py` passes (0 new); `tools/stub_detector.py` finds 0 real stubs; `py_compile` clean on 3.11.
+
 ## Session — 2026-11-19 — /api/dc/intake/* mounts via product_manifest in all deploy modes (swe-2, task task-5f475242)
 
 **Context:** `/api/dc/intake/*` (OCR-first intake confirm loop) 404'd on
@@ -477,6 +519,36 @@ All checks passed.
 **Verified:** `has_schema_privilege('semptify','public','CREATE')` = true in all 4 DBs; over-the-wire psycopg create+drop probe as `semptify` succeeded in all 4. `.env` LAN DATABASE_URL line still commented out — local dev remains on SQLite/Neon per the 2026-10-25 split.
 
 ## Session — 2026-11-12 — Token-storage reality ADR + admin dynamic-IP fix (swe-2)
+
+### Guardrail Engine Run — 2026-11-23T08:48:11+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-23T08:47:42+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
 
 **Shipped:**
 
