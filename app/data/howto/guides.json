@@ -15,7 +15,7 @@
     }
   },
   "section": "how_to",
-  "updated": "2026-09-19",
+  "updated": "2026-11-22",
   "_entry_template": {
     "id": "template_do_not_publish",
     "title": "How to ___ (replace with the real task)",
@@ -53,6 +53,105 @@
       "related_subjects": ["retaliation", "law_library"],
       "source": "research — system procedure, not first-hand experience; review before publishing",
       "status": "draft"
+    },
+    {
+      "id": "bp_mark_the_draft",
+      "title": "Mark the bill draft: comment, question, or suggest an edit",
+      "summary": "How to leave a comment, ask a question, or suggest an edit on the Rent Assurance & Deposit Protection Act draft at semptify.org/bill. What you send stays private until a person reads it onto the public margin.",
+      "steps": [
+        {"title": "Open the Inkwell", "body": "Go to semptify.org/bill and open the page called the Inkwell. If you are reading a specific clause, use the mark link on that clause's page — it opens the same form with the clause already picked."},
+        {"title": "Pick the clause and the kind", "body": "Choose the clause your mark is about, or leave it on general, no clause. Then pick a kind: Comment, Question, or Proposed edit."},
+        {"title": "Write it plainly", "body": "Say what you mean in your own words — a suggestion, a concern, a correction, or a question all count. The writing box is required. Everything else on the form is optional."},
+        {"title": "Decide what to sign", "body": "You can add proposed wording, your name, and a way to reach you. Your name appears publicly only if a steward reads your mark onto the margin. Your contact information is never shown."},
+        {"title": "Send it and save the receipt code", "body": "Submit the form. The page gives you a receipt code — write it down. It is the only way to check on your mark later."}
+      ],
+      "tips": [
+        "Nothing posts right away. Your mark goes into a private intake pile. A person — called a steward — reads it and decides whether it goes on the public margin with an M-number.",
+        "Leave the name field blank to stay unsigned. The contact field is never published — it is only so the steward can reach you.",
+        "The box labeled website is a trap for bots. Leave it empty.",
+        "If this is about your own housing right now — a notice, a repair, a lockout — call HOME Line at 612-728-5767 first. The mark form says so too. A proposed law cannot fix an emergency."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-22; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "bp_answer_a_mark",
+      "title": "Answer a mark that is already on the margin",
+      "summary": "How to reply to a mark someone already made on the bill draft at semptify.org/bill. Your answer links back to their mark once it is read in.",
+      "steps": [
+        {"title": "Open the margin", "body": "Go to semptify.org/bill and open the margin. It is the public ledger of every mark that has been read in — numbered M-0001 and up."},
+        {"title": "Find the mark you want to answer", "body": "Read down the list, or follow a link to a specific M-number. Each mark shows its number, its date, and the clause it is about."},
+        {"title": "Choose 'answer by reference'", "body": "On the mark, click or tap 'answer by reference.' It opens the Inkwell form already linked to that mark."},
+        {"title": "Write your answer", "body": "Say what you would add, correct, or answer. Keep it on the point you are replying to."},
+        {"title": "Send it and save the receipt code", "body": "Submit, then write down the receipt code. Once a steward reads your answer in, it shows on the margin as a reply to that M-number."}
+      ],
+      "tips": [
+        "Answers are marks too — they go through the same private intake before they show publicly.",
+        "Answer the mark, not the person. The margin is a public record, and plain and factual reads best."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-22; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "bp_submit_a_request",
+      "title": "Ask for a briefing, an amendment, a position, or an answer",
+      "summary": "How to use the requests desk at semptify.org/bill when you need more than a comment — a briefing, a change to the draft, an organization's position, or a technical answer. You can watch your request move through its stages.",
+      "steps": [
+        {"title": "Open the requests desk", "body": "Go to semptify.org/bill and open Requests. The form for a new request is on that page."},
+        {"title": "Pick what you are asking for", "body": "Choose a request type: Briefing / fiscal walkthrough, Statutory amendment, Organization position, Technical question, or Other."},
+        {"title": "Say it in one line", "body": "The summary box is required — one line that says what you are asking. You can also pick the clause it relates to and add details underneath."},
+        {"title": "Say who is asking — optional", "body": "There is a field for your organization or role, and a contact field. The contact is for the steward only. It never shows on the public page."},
+        {"title": "Send it and save the receipt code", "body": "Submit the form and write down the receipt code. It is the only way to check on your request later."}
+      ],
+      "tips": [
+        "A request is for something that needs an answer or an action. If you only want to comment on the wording of a clause, use the Inkwell instead.",
+        "Your request moves through stages: new, reviewing, scheduled, then incorporated or declined. Check it anytime with your receipt code on the Track page.",
+        "Notes the steward leaves on your request are public. Read your request's row to see them."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-22; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "bp_sign_the_bill",
+      "title": "Sign the bill",
+      "summary": "How to add your name to the public book of supporters for the Rent Assurance & Deposit Protection Act draft at semptify.org/bill. Signing is a public act — your name publishes only because you choose it.",
+      "steps": [
+        {"title": "Open the sign page", "body": "Go to semptify.org/bill and open Sign the bill."},
+        {"title": "Write your name as it should appear", "body": "The name field is required. Whatever you write is what would publish — for example, A. Renter, St. Paul."},
+        {"title": "Add what you want on the record — optional", "body": "You can add your organization or town, and one line for the record. Both publish with your name."},
+        {"title": "Add your email only if you want follow-up — optional", "body": "The email field is never published. It exists so someone can reach you about the bill."},
+        {"title": "Tick the consent box and send", "body": "The 'Publish my name' checkbox is required — it is your clear yes. Submit the form, then save the receipt code."}
+      ],
+      "tips": [
+        "Signing lands dark first. Your name publishes only after a steward reads it in — then it gets an S-number in the public book.",
+        "The consent checkbox is what makes signing possible at all. No tick, no signature — the form will not send.",
+        "Name, org or town, and your line for the record are the only things that can appear. Email is never published."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-22; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "bp_track_submission",
+      "title": "Check on something you sent",
+      "summary": "How to use a receipt code to see where your mark, request, or signature stands on the bill platform at semptify.org/bill. The receipt code is the only way back — nothing public ties a submission to you.",
+      "steps": [
+        {"title": "Find your receipt code", "body": "Every time you submit a mark, request, or signature, the page shows a receipt code — a short string of letters and numbers — and tells you to save it. Look where you wrote it down."},
+        {"title": "Open the track page", "body": "Go to semptify.org/bill and open Track a submission."},
+        {"title": "Enter the code", "body": "Type or paste the code into the Receipt code box and submit."},
+        {"title": "Read the status", "body": "The page shows where your submission stands. A mark shows queued or read in — once read in, it shows its M-number and a link to the margin. A signature shows queued or published with its S-number. A request shows its stage: new, reviewing, scheduled, incorporated, or declined."}
+      ],
+      "tips": [
+        "The receipt code is the only lookup. If you lose it, there is no way to find your submission — save it every time.",
+        "Your code is private to you. It never shows on the public pages, and the public pages never show who sent what.",
+        "Nothing appearing for a while is normal — a steward reads things in by hand. Check again later with the same code."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-22; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
     }
   ]
 }
