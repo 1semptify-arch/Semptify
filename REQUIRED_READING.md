@@ -37,8 +37,8 @@
 | `DEPLOYMENT_READINESS.md` | Deploys, production verification, Render/Neon work |
 | `docs/admin/SSOT_EXPORT.md` | Data flows, canonical paths, storage/tracing — the SSOT reference |
 | `README.md` | Build/run/env setup, dependency changes |
-| `.devin/rules/*.md` | Standing rules matching your task (four pillars, redirects, roles/identity, journal-calendar-timeline, onboarding gates, progressive disclosure, vault SDK, forge) |
-| `.devin/skills/<name>/SKILL.md` | The workflow you are executing (`preflight`, `ship`, `forge`, `review`, `ssot-analysis`, `orchestrator_preflight`, `cloudflare-dev-mode`, `help-page-review`) — and its `.github/prompts/` mirror stays in sync |
+| `.devin/rules/*.md` | Standing rules matching your task (four pillars, redirects, roles/identity, journal-calendar-timeline, onboarding gates, progressive disclosure, vault SDK, forge, state-driven-actions) |
+| `.devin/skills/<name>/SKILL.md` | The workflow you are executing (`preflight`, `ship`, `forge`, `review`, `ssot-analysis`, `orchestrator_preflight`, `cloudflare-dev-mode`, `help-page-review`, `smart-toolbar`) — and its `.github/prompts/` mirror stays in sync |
 | `.cursor/rules/01-gui-chronological-spatial.mdc` | Any GUI work — chronological/spatial ordering + eye-path self-audit |
 | `semptify-gui-standards.md` | Any GUI work — reconciled UI/UX architecture standard (3-tier structure, Guided Navigation Panel, action-color rules) |
 | `GAPS.md` | Auto-generated gap report (regenerate via `tools/gap_report.py`) |

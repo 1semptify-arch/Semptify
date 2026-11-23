@@ -310,3 +310,40 @@
         prompt:  prompt,
     };
 })();
+
+// ---- [data-confirm] delegation ---------------------------------------------
+// Declarative confirmations for the smart toolbar (rule 12): any
+// <form data-confirm="..."> or <a data-confirm="..."> routes through
+// SemptifyFeedback.confirm — the canonical in-app dialog. Native confirm()
+// is banned repo-wide. Add data-confirm-danger for the destructive style.
+(function () {
+    if (!window.SemptifyFeedback || !window.SemptifyFeedback.confirm) return;
+
+    document.addEventListener('submit', function (e) {
+        var f = e.target.closest('form[data-confirm]');
+        if (!f) return;
+        if (f.dataset.confirmed === '1') { delete f.dataset.confirmed; return; }
+        e.preventDefault();
+        window.SemptifyFeedback
+            .confirm(f.dataset.confirm, { danger: f.hasAttribute('data-confirm-danger') })
+            .then(function (ok) {
+                if (!ok) return;
+                f.dataset.confirmed = '1';
+                if (f.requestSubmit) f.requestSubmit(); else f.submit();
+            });
+    });
+
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest('a[data-confirm]');
+        if (!a) return;
+        if (a.dataset.confirmed === '1') { delete a.dataset.confirmed; return; }
+        e.preventDefault();
+        window.SemptifyFeedback
+            .confirm(a.dataset.confirm, { danger: a.hasAttribute('data-confirm-danger') })
+            .then(function (ok) {
+                if (!ok) return;
+                a.dataset.confirmed = '1';
+                a.click();
+            });
+    });
+})();

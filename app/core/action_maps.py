@@ -53,6 +53,7 @@ class QuickAction:
     required_roles: list[str] | None = None
     confirmation_prompt: str | None = None  # If set, show confirmation
     disabled_states: list[str] | None = None  # Page states where disabled
+    danger: bool = False  # Destructive styling (btn--danger / error confirm)
 
 
 # =============================================================================
