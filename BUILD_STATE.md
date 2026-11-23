@@ -33,6 +33,7 @@ All checks passed.
 **Done:**
 - `app/templates/components/safety_exit.html` — hardcoded `#fafafa` / `#777` replaced with `var(--tone-50)` / `var(--text-muted)`.
 - `app/templates/pages/legal_dashboard.html` — `.badge` font-size `0.72rem` → `0.75rem` (style-guard floor).
+- `design-system/components/function-groups/onboarding/onboarding-tracker.html` — `{{ component_id }_next_btn` → `{{ component_id }}_next_btn` (Jinja `TemplateSyntaxError: unexpected '}'` that broke the DesignSystem Hub render). Design-system component only; not `app/modules/onboarding/`.
 - `sandbox/slice1_verify.py`, `sandbox/slice7_verify.py` — `# stub-detector: ignore` on `_NoRedirect.redirect_request()`: returning `None` is how urllib blocks redirects, not a stub.
 
 **Verified:** `tools/style_guard.py` passes (0 new); `tools/stub_detector.py` finds 0 real stubs; `py_compile` clean on 3.11.
