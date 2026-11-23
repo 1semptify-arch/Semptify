@@ -368,6 +368,36 @@ All checks passed.
 
 ## Session — 2026-11-12 — Token-storage reality ADR + admin dynamic-IP fix (swe-2)
 
+### Guardrail Engine Run — 2026-11-23T08:48:11+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
+### Guardrail Engine Run — 2026-11-23T08:47:42+00:00
+
+- **context_fact_check**: PASS — Part 3B context_fact schema, consumer filter, and gatherer attestation verified
+- **contract_route_check**: PASS — FunctionGroupContract allowed_routes/prefixes/tiers match actual routes.
+- **fees_policy_check**: PASS — No exempt_advanced module is reachable by the tenant role.
+- **manifest_sync_check**: PASS — Sync orchestrator passed.
+- **module_contract_check**: PASS — 132 module_contract.json file(s) validated; registry index is up to date.
+- **resource_intake_check**: PASS — 1 resource(s) verified; all are human-approved and non-AI-generated.
+- **route_audit_check**: PASS — All actionable public routes have contract coverage.
+- **stub_check**: PASS — No stubs found.
+- **toolbox_truth_check**: PASS — 68 catalog entries verified — structure valid, all internal paths resolve, all backed_by modules exist, no dead /toolbox links. (28 live, 27 partial, 9 planned, 4 vision)
+- **wing_theme_check**: PASS — 9 wings: theme + archetype files verified.
+
+All checks passed.
+
 **Shipped:**
 
 - `docs/adr/0010-token-storage-reality.md` — audit finding: the `sessions`
