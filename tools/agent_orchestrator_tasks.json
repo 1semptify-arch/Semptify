@@ -4131,5 +4131,16 @@
     "updated_at": "2026-09-18T13:43:46.130285+00:00",
     "target_model": "trusted",
     "assigned_agent": "unassigned"
+  },
+  {
+    "id": "task-ci-green-20261123",
+    "category": "bugfix",
+    "created_at": "2026-11-23T00:00:00Z",
+    "description": "main CI red after #350: style-guard (safety_exit.html hardcoded colors, legal_dashboard.html 0.72rem) + guardrail stub_check (sandbox _NoRedirect.redirect_request false positive).",
+    "file_path": "app/templates/components/safety_exit.html",
+    "status": "in_progress",
+    "assigned_agent": "devin",
+    "notes": "",
+    "updated_at": "2026-11-23T00:49:45.764334+00:00"
   }
 ]
