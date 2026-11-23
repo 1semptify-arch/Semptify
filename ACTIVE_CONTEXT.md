@@ -1,6 +1,8 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-10-31 (Public bill section live on semptify.org via `bill-mirror` Cloudflare worker — static mirror of `/bill`, `/bill/live`, `/bill/research`, `/your-voice`, `/what-the-bill-changes` + `/` failover from GitHub repo `semptify-bill-mirror`. `/bill` is a standalone full-viewport page: AI-rendered MN lake scene (Workers AI FLUX, composites in `bill-static`), North Star palette, Fell English title, flags per § 609.40, no advertising. Render origin DOWN: Neon quota exhausted (resets 2026-11-01 00:00Z) + cold-boot exceeds port-scan window — bridge DB `divine-sun-29128013` + stamped alembic_version as emergency workaround. See BUILD_STATE.md 2026-10-31 for full details + scene-generation pipeline notes.)
+**Last Updated**: 2026-11-23 (Cleanup & polish. Render origin is back UP — `https://semptify.org/health` returns 200; the 2026-10-31 "origin DOWN" note below is history, not current state. Neon compute wake-burn fixed (PR #350: landing facts cached 30 min per jurisdiction, Render health check → `/health` so probes never touch Neon). Main CI back to green (PR #356: style-guard tokens, stub-detector false positives, detect-secrets fixture pragma, design-system onboarding-tracker Jinja fix). Shipped since 10-31 — see BUILD_STATE.md 2026-11-01…11-21: legal share portal / co-view MVP (#349), lazy router imports for free-tier cold boot, DB pool retuned for Neon scale-to-zero, six pillar front pages + toolbox slot/wing fields, P5 complaint wizard backend, P6 civic public-voice pipeline + /your-voice flag/report, P9 builders (API docs, SDK, volunteer, self-host), P10 research copy, /bill/live two-tab view, build-time route audit guardrail, G10.8 idle session timeout, `/api/dc/intake/*` mounted in all deploy modes. Threat-model repository security scans are QUARANTINED until Brad says OK.)
+
+**Previous**: 2026-10-31 (Public bill section live on semptify.org via `bill-mirror` Cloudflare worker — static mirror of `/bill`, `/bill/live`, `/bill/research`, `/your-voice`, `/what-the-bill-changes` + `/` failover from GitHub repo `semptify-bill-mirror`. `/bill` is a standalone full-viewport page: AI-rendered MN lake scene (Workers AI FLUX, composites in `bill-static`), North Star palette, Fell English title, flags per § 609.40, no advertising. Render origin DOWN: Neon quota exhausted (resets 2026-11-01 00:00Z) + cold-boot exceeds port-scan window — bridge DB `divine-sun-29128013` + stamped alembic_version as emergency workaround. See BUILD_STATE.md 2026-10-31 for full details + scene-generation pipeline notes.)
 
 **Previous**: 2026-09-13 (Prod schema repair + donor portal — Neon table ownership fixed (`authenticator`→`neondb_owner`), migrations applied, deploy-time drift guard added (PR #232, KF #20); fact-checked funding presentation live at `/donate` with GitHub Sponsors (PRs #234–#236). Retaliation tracker live. See BUILD_STATE.md 2026-09-13 entries.)
 
@@ -29,7 +31,11 @@
 5. ~~Build the real tapering dial, wire Module Resolver, add form-factor layout variants.~~ DONE — Familiarity Tapering (`intensity_level`/`exposure_count`) live, Module Resolver wired (non-blocking notice pattern), desktop-poster/mobile-stacked-scroll variants applied to all three templates, Page Shell CSS/token vocabulary applied for visual consistency with Concierge pages. Verified at 375px and 1280px, all checks clean.
 6. ~~Current step: pause point.~~ SUPERSEDED 2026-09-12 — the guiding priority became Site Shell v5 rollout + tenant-core stabilization (see BUILD_STATE.md). PageEngine facade remains unbuilt and unscheduled.
 
-**Where things actually stand (2026-09-12):**
+**Where things actually stand (2026-11-23):**
+- Prod is up on Render (free tier) + Neon (scale-to-zero); cold-boot and wake-burn mitigations are live (#350, lazy routers, NullPool).
+- Current work: cleanup & polish only — no new features. Next queued item: the central plain-words pass on contract copy (Backlog below).
+
+**Earlier standing (2026-09-12):**
 - Site Shell v5 is the canonical chrome on all migrated families — asymmetric rail layout, paper background, thin role-colored header/footer, liquid root scaling, no desktop page-scroll.
 - Tenant RECORD loop is closed: Quick Capture (file/camera/audio/call-log) → contacts + timeline → visible in `/tenant/contacts`.
 - Next candidates: OCR word-box pipeline (on-image field highlights), advocate/legal live visual check (needs a role account), local-provider/yellow-access decision.
