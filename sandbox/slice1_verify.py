@@ -146,6 +146,7 @@ def audit_rows(actor=None):
 
 
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    # stub-detector: ignore -- returning None is how urllib blocks redirects
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         return None
 

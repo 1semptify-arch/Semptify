@@ -129,6 +129,9 @@ def _humanize_description(description: str, module: str = "", group_name: str = 
         description,
         flags=re.IGNORECASE | re.DOTALL,
     )
+    description = description.strip()
+    if description and description[0].islower():
+        description = description[0].upper() + description[1:]
     return description
 
 
