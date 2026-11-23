@@ -4138,9 +4138,9 @@
     "created_at": "2026-11-23T00:00:00Z",
     "description": "main CI red after #350: style-guard (safety_exit.html hardcoded colors, legal_dashboard.html 0.72rem) + guardrail stub_check (sandbox _NoRedirect.redirect_request false positive).",
     "file_path": "app/templates/components/safety_exit.html",
-    "status": "in_progress",
+    "status": "review",
     "assigned_agent": "devin",
-    "notes": "",
-    "updated_at": "2026-11-23T00:49:45.764334+00:00"
+    "notes": "[2026-11-23 00:50 UTC - devin] PR open; style_guard + stub_detector pass locally",
+    "updated_at": "2026-11-23T00:50:31.811300+00:00"
   }
 ]
