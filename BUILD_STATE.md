@@ -1,3 +1,41 @@
+## Session — 2026-11-23 — POST /setup endpoint: wizard profile + first case persist (swe-2, task task-44171189)
+
+**Context:** intake-85f2d845 — the setup wizard's Next/Finish called
+`saveStep()` POSTing JSON to `/setup`, but only a GET existed (405). Users
+could only progress via Skip; nothing ever saved.
+
+**Done:**
+- `app/main.py` — new `POST /setup` (yellow_access). Step 1 confirms the
+  storage connection; step 2 writes `{name, role}` to the user's vault at
+  `Vault/records/profile.json` (profile data is user-owned — the SSOT
+  privacy rule keeps names out of Semptify's DB); step 3 creates the first
+  case via the canonical `incident_store.create_incident` +
+  `case_builder.save_case` path (INCIDENT overlay + CASE_DATA narrative —
+  title goes in the narrative since save_case normalizes the pointer title
+  to non-PII), then writes `app/data/.setup_complete` for the
+  `/api/setup/check` first-run gate.
+- `app/main.py` — GET /setup now hydrates `profile` from the vault file so
+  re-visiting pre-fills step 2 (best-effort; never breaks page load).
+- `app/core/vault_paths.py` — new `VAULT_PROFILE_FILE` constant (SSOT path).
+- `app/modules/setup/register.py` — new `setup_wizard_save_step`
+  FunctionGroupContract with `allowed_routes=("/setup",)` so the route
+  audit recognizes the page POST's coverage.
+- Wizard `role` values (case_worker/supervisor/admin) persist as an
+  informational profile label only — `users.default_role`/user_id role
+  codes untouched (identity model bakes role into the ID; relabeling is a
+  product decision for Brad).
+- Logged intake-d478e4ab (not fixed): POST /settings likely 405 — same
+  template-batch-3 missing-backend pattern.
+
+**Verified:** `py_compile` clean (main.py, vault_paths.py, register.py);
+live on :8025 (local_dev): unauth POST → 401 auth_required; seeded dev
+user → step1 200 saved, step2 200 + `profile.json` confirmed on vault
+disk, step3 200 `case_id` + INCIDENT overlay + CASE_DATA overlay
+(`narrative` = title + situation) + `.setup_complete` marker; re-GET
+renders `value="Test Tenant"`; route audit "all actionable public routes
+have contract coverage". pytest module_health still running at session
+end (see orchestrator verification JSON).
+
 ## Session — 2026-11-23 — smart-toolbar per-page conversion sweep (swe-2, task plan-20261123-smart-toolbar-semptify-pages)
 
 **Context:** Parent rollout `plan-20261123-roll-out-state-driven-smart-toolbar-patt-4123`

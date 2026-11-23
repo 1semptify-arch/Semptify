@@ -199,3 +199,24 @@ register_function_group(
         deterministic=True,
     )
 )
+
+register_function_group(
+    FunctionGroupContract(
+        module="setup",
+        group_name="setup_wizard_save_step",
+        title="Setup Wizard Save Step (POST /setup) (SSOT)",
+        description=(
+            "CANONICAL first-run wizard persistence — POST /setup (page route in "
+            "app/main.py). Step 1 confirms storage; step 2 writes the profile to "
+            "the user's vault (VAULT_PROFILE_FILE); step 3 creates the first case "
+            "via incident_store.create_incident + CASE_DATA overlay and marks "
+            "setup complete. Auth: yellow_access — persistence requires a "
+            "connected vault by design."
+        ),
+        inputs=("step", "name?", "role?", "case_title?", "situation?"),
+        outputs=("status", "case_id?"),
+        dependencies=("app.main", "app.services.incident_store"),
+        deterministic=False,
+        allowed_routes=("/setup",),
+    )
+)
