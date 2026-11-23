@@ -196,7 +196,7 @@ function render() {
       '</div>' +
       '<div class="actions">' +
         '<button class="btn" onclick="toggleMeta('' + item.id + '')">Details</button>' +
-        '<button class="btn btn-danger" title="Execution is disabled; run scripts from a terminal for safety." disabled>Run</button>' +
+        '<span style="color:var(--muted);font-size:0.85rem;align-self:center">Run from a terminal</span>' +
       '</div>'
     );
     grid.appendChild(card);

@@ -96,7 +96,10 @@
     function endView(){
         ended=true;clearInterval(pollTimer);
         status('ended','Session ended. Invite tokens for this session no longer work.');
-        ['cv-send-pos','cv-invite','cv-end','cv-qa-send'].forEach(function(id){document.getElementById(id).disabled=true;});
+        // Session over — its actions no longer exist (rule 12), so the
+        // control bars leave the DOM rather than rendering disabled.
+        document.querySelectorAll('.cv-bar').forEach(function(b){b.remove();});
+        var note=document.getElementById('cv-invite-note');if(note)note.remove();
     }
     function connect(){
         var wsUrl=(location.protocol==='https:'?'wss://':'ws://')+location.host+'/api/coview/ws/'+SID;
@@ -139,7 +142,11 @@
     });
 
     fetch('/api/coview/sessions/'+SID).then(function(r){return r.ok?r.json():null;})
-        .then(function(d){if(d){snapshot(d);if(!d.active){endView();}else{connect();}}else{status('ended','Session not found.');}});
+        .then(function(d){if(d){snapshot(d);if(!d.active){endView();}else{connect();}}else{
+            status('ended','Session not found.');
+            document.querySelectorAll('.cv-bar').forEach(function(b){b.remove();});
+            var note=document.getElementById('cv-invite-note');if(note)note.remove();
+        }});
 })();
 </script>
 {% endblock %}

@@ -1,3 +1,61 @@
+## Session — 2026-11-23 — smart-toolbar per-page conversion sweep (swe-2, task plan-20261123-smart-toolbar-semptify-pages)
+
+**Context:** Parent rollout `plan-20261123-roll-out-state-driven-smart-toolbar-patt-4123`
+(log: `C:\master-repo\UI_ROLLOUT_LOG.md`). Engine + Jinja partial were already
+installed; this task converted the lifecycle pages and swept remaining
+templates for `disabled`-as-availability-gating violations (rule 12: invalid
+actions don't render — in-flight submit gating stays `disabled`).
+
+**Done:**
+- New shared `static/components/smart-toolbar.js` — client-side port of the
+  engine (`window.SmartToolbar.project/render`, same contract as the Jinja
+  partial + fleet `tools/smart_toolbar.py` JS port) for pages that load state
+  via fetch instead of server render.
+- `pages/case_builder.html` — PDF/ZIP/curated-export buttons now projected
+  (READY → actions, EMPTY/fetch-fail → nothing renders); no more disabled
+  export buttons.
+- `pages/journey.html` — per-step projection: done→Review link, current→
+  Continue primary, locked→no button. Step-3 href corrected to `/case-builder`
+  (`/ui/tool/case-builder` redirects to /tenant/start).
+- `pages/setup_wizard.html` — nav row projected per step (1: Next+Skip,
+  2: Back+Next+Skip, 3: Back+Finish); replaced disabled-toggle wiring.
+- `pages/dispute_tracker.html` — Add-comparison form renders only
+  `{% if disputes %}`, else a "add a dispute first" line.
+- `gui/record.html` — Export hidden until docs exist (`hidden`, not
+  `disabled`); in-flight export disable retained.
+- `gui/home.html` — court-prep Act projected only when a hearing is on the
+  calendar (file is unrouted today — /gui/home redirects; fix applied for
+  rule-12 cleanliness, logged intake-fad73e98).
+- `pages/briefcase.html` — Export renders only `{% if documents %}`.
+- `pages/law_linker_popout.html` — save renders only with text/URL; after
+  save the button becomes a "Saved" status span.
+- `pages/coview.html` — `.cv-bar` action bars leave the DOM on session end
+  AND on session-not-found.
+- `pages/office_signer.html` — consumed sign/reject becomes status span.
+  (Unrouted template — logged intake-f0a1aac6.)
+- `pages/admin_script_catalog.html` — always-disabled Run button replaced
+  with "Run from a terminal" text.
+- `components/doc_viewer.html` — nav/zoom buttons `hidden` at bounds;
+  `disabled` kept only for `state.busy` in-flight gating.
+- `app/core/action_maps.py` — removed dead `QuickAction.disabled_states`
+  field; `tests/test_action_maps.py` updated.
+- Not changed (legit gating): packet_builder/dakota_defense/counterclaim
+  in-flight and input-pending disableds; disabled `<option>` placeholders.
+- Logged to intake (pre-existing, not fixed): POST /setup 405 — wizard
+  saveStep has no endpoint (intake-85f2d845).
+
+**Verified:** `pytest tests/test_action_maps.py` 22/22 passed (single-file
+run trips the global `--cov-fail-under=30` gate — expected, not a failure);
+`py_compile` clean on changed py; `node --check` clean; all 12 changed
+templates Jinja-parse clean; node smoke test of the JS engine (project +
+render + EMPTY clear). Live on :8025 with seeded user: journey locked steps
+render zero buttons, case-builder EMPTY projects nothing (stubbed API),
+READY renders PDF/ZIP/Export, wizard nav correct on all 3 steps incl. Back,
+dispute-tracker compare form renders with disputes, briefcase empty state
+has no export button, law-linker save→"Saved", coview not-found strips all
+bars, gui/record export visible with docs; 390px mobile nav stacks; console
+clean except the logged 405.
+
 ## Session — 2026-11-21 — test_websocket.py synced to signed-cookie /ws auth (swe-2, task task-dbe64fe1)
 
 **Context:** `TestWebSocketEvents` (and the same staleness in

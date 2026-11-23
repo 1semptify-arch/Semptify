@@ -312,8 +312,8 @@
       const timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
       SemptifyFeedback.success(`Document signed: "${doc.title}" at ${timestamp}. Recorded in your vault as tamper-evident evidence.`);
       document.getElementById('pending-' + currentDoc).style.opacity = '0.5';
-      document.getElementById('pending-' + currentDoc).querySelector('.pending-action').textContent = 'Signed';
-      document.getElementById('pending-' + currentDoc).querySelector('.pending-action').disabled = true;
+      // Consumed action → status label, not a disabled button (rule 12).
+      document.getElementById('pending-' + currentDoc).querySelector('.pending-action').outerHTML = '<span class="pending-action" style="cursor:default">Signed</span>';
       clearSignature();
     }
 
@@ -325,9 +325,7 @@
       SemptifyFeedback.success(`Document rejected: "${doc.title}" at ${timestamp}.${reason ? ' Reason: ' + reason : ''} Sender notified, rejection record in vault.`);
       document.getElementById('pending-' + currentDoc).style.opacity = '0.5';
       const btn = document.getElementById('pending-' + currentDoc).querySelector('.pending-action');
-      btn.textContent = 'Rejected';
-      btn.disabled = true;
-      btn.style.background = 'var(--color-error)';
+      btn.outerHTML = '<span class="pending-action" style="cursor:default;background:var(--color-error)">Rejected</span>';
       clearSignature();
     }
   

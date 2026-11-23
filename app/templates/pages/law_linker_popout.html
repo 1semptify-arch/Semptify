@@ -100,7 +100,7 @@
                 {% if citation.official_url %}
                 <a class="btn btn-primary" id="officialLink" href="{{ citation.official_url }}" target="_blank" rel="noopener noreferrer">View at official source</a>
                 {% endif %}
-                <button class="btn btn-secondary" id="saveToScratch" type="button" {% if not citation.text and not citation.official_url %}disabled{% endif %}>Save to scratch pad</button>
+                {% if citation.text or citation.official_url %}<button class="btn btn-secondary" id="saveToScratch" type="button">Save to scratch pad</button>{% endif %}
             </div>
 
             <p style="color:var(--text-tertiary); font-size:0.75rem; margin-top:1rem;">
@@ -121,7 +121,8 @@
 </div>
 
 <script>
-document.getElementById('saveToScratch').addEventListener('click', async function () {
+const saveToScratchBtn = document.getElementById('saveToScratch');
+if (saveToScratchBtn) saveToScratchBtn.addEventListener('click', async function () {
     const textEl = document.getElementById('officialText');
     const title = document.getElementById('citationTitle').textContent.trim();
     const source = document.getElementById('sourceName').textContent.trim();
@@ -143,8 +144,9 @@ document.getElementById('saveToScratch').addEventListener('click', async functio
             body: JSON.stringify({ text: bodyText, source: source })
         });
         if (res.ok) {
-            this.textContent = 'Saved';
-            this.disabled = true;
+            // Saved — the action is consumed; show the outcome, not a
+            // disabled button (rule 12).
+            this.outerHTML = '<span class="btn btn-secondary" style="cursor:default">Saved</span>';
         } else {
             const data = await res.json().catch(() => ({}));
             SemptifyFeedback.error(data.detail || 'Could not save to scratch pad.');

@@ -53,9 +53,7 @@
                         <div class="frame-item--title">Prepare for court</div>
                         <div class="frame-item--meta" id="courtPrepMeta">Add a court date to your calendar to unlock this.</div>
                     </div>
-                    <div class="frame-item--actions">
-                        <a href="/gui/act" class="frame-btn" id="courtPrepBtn" disabled>Act</a>
-                    </div>
+                    <div class="frame-item--actions" id="courtPrepAction"></div>
                 </div>
             </div>
         </section>
@@ -84,8 +82,23 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/components/smart-toolbar.js"></script>
 <script>
 (function () {
+    // Rule 12: the court-prep action only exists once a hearing is on the
+    // calendar — before that, nothing renders (no disabled button).
+    const COURT_ACTIONS = {
+        act: { id: 'act', label: 'Act', endpoint: '/gui/act', method: 'GET', cls: 'frame-btn frame-btn--primary' },
+    };
+    const COURT_RULES = { HEARING: { primary: 'act' } };
+    function renderCourtPrep(hasHearing) {
+        SmartToolbar.render(
+            document.getElementById('courtPrepAction'),
+            SmartToolbar.project(hasHearing ? 'HEARING' : 'NONE', COURT_ACTIONS, COURT_RULES),
+            { classes: { wrap: 'smart-toolbar' } }
+        );
+    }
+
     function fmtDate(s) {
         if (!s) return '—';
         try {
@@ -117,13 +130,11 @@
                 meta.textContent = 'No upcoming deadlines in the next 30 days.';
             }
             const hasHearing = events.some(e => e.event_type === 'hearing');
-            const courtBtn = document.getElementById('courtPrepBtn');
             const courtMeta = document.getElementById('courtPrepMeta');
             if (hasHearing) {
                 courtMeta.textContent = 'You have a court date coming up. Review your packet and what to expect.';
-                courtBtn.removeAttribute('disabled');
-                courtBtn.classList.add('frame-btn--primary');
             }
+            renderCourtPrep(hasHearing);
         } catch (e) {
             meta.textContent = 'Could not load deadlines.';
         }

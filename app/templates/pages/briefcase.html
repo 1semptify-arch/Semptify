@@ -63,7 +63,7 @@
   <div class="action-bar">
     <input type="file" id="filePicker" style="display:none" multiple>
     <button class="btn btn-secondary" onclick="document.getElementById('filePicker').click()">Add Document</button>
-    <button class="btn btn-primary" id="exportBtn" onclick="exportBriefcase()" {% if not documents %}disabled{% endif %}>Export Briefcase</button>
+    {% if documents %}<button class="btn btn-primary" id="exportBtn" onclick="exportBriefcase()">Export Briefcase</button>{% endif %}
   </div>
 
   <div class="reaction working hidden" id="reactionWorking">Exporting...</div>

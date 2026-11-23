@@ -24,9 +24,9 @@
     padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-md);
     border: none; font-size: var(--font-size-sm); cursor: pointer;
   }
-  .btn-primary { background: var(--color-primary); color: var(--color-on-primary); }
-  .btn-secondary { background: var(--color-surface-alt); color: var(--color-text-primary); }
-  .btn-primary:disabled, .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--color-primary); color: var(--color-on-primary); text-decoration: none; display: inline-block; }
+  .btn-secondary { background: var(--color-surface-alt); color: var(--color-text-primary); text-decoration: none; display: inline-block; }
+  .smart-toolbar { display: flex; gap: var(--space-sm); }
 
   .reaction { font-size: var(--font-size-sm); color: var(--color-warning); text-align: center; padding: var(--space-md); }
 
@@ -53,22 +53,36 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/components/smart-toolbar.js"></script>
 <script>
   const steps = [
-    { n: 1, title: 'Understand Your Rights', desc: 'Learn about your legal protections as a tenant.', status: 'done' },
-    { n: 2, title: 'Document Everything', desc: 'Gather records, photos, and correspondence.', status: 'done' },
-    { n: 3, title: 'Assess Your Case', desc: 'Evaluate the strength of your claim.', status: 'current' },
-    { n: 4, title: 'Take Action', desc: 'File complaints or initiate legal proceedings.', status: 'locked' },
-    { n: 5, title: 'Follow Through', desc: 'Track progress and enforce outcomes.', status: 'locked' }
+    { n: 1, title: 'Understand Your Rights', desc: 'Learn about your legal protections as a tenant.', status: 'done', href: '/help' },
+    { n: 2, title: 'Document Everything', desc: 'Gather records, photos, and correspondence.', status: 'done', href: '/documents' },
+    { n: 3, title: 'Assess Your Case', desc: 'Evaluate the strength of your claim.', status: 'current', href: '/case-builder' },
+    { n: 4, title: 'Take Action', desc: 'File complaints or initiate legal proceedings.', status: 'locked', href: '/ui/tool/plan-maker' },
+    { n: 5, title: 'Follow Through', desc: 'Track progress and enforce outcomes.', status: 'locked', href: '/api/dispute-tracker/' }
   ];
+  // Per-step state → action (rule 12): a locked step renders no button at all.
+  const JOURNEY_RULES = {
+    done: { contextual: ['review'] },
+    current: { primary: 'continue' },
+    locked: {},
+  };
+  function stepToolbar(s) {
+    const actions = {
+      review: { id: 'review', label: 'Review', endpoint: s.href, method: 'GET' },
+      continue: { id: 'continue', label: 'Continue', endpoint: s.href, method: 'GET' },
+    };
+    const proj = SmartToolbar.project(s.status, actions, JOURNEY_RULES);
+    const host = document.createElement('div');
+    SmartToolbar.render(host, proj, { classes: { wrap: 'smart-toolbar', primary: 'btn-primary', ghost: 'btn-secondary' } });
+    return host.innerHTML;
+  }
   function loadJourney() {
     const list = document.getElementById('journey-list');
     setTimeout(() => {
       list.innerHTML = steps.map(s => {
-        const btnLabel = s.status === 'done' ? 'Review' : s.status === 'current' ? 'Continue' : 'Locked';
-        const btnClass = s.status === 'locked' ? 'btn-secondary' : 'btn-primary';
-        const disabled = s.status === 'locked' ? 'disabled' : '';
-        return '<div class="step"><div class="step-header"><div class="step-num ' + s.status + '">' + s.n + '</div><p class="step-title">' + s.title + '</p></div><p class="step-desc">' + s.desc + '</p><div class="step-status">Status: ' + s.status + '</div><button class="' + btnClass + '" ' + disabled + '>' + btnLabel + '</button></div>';
+        return '<div class="step"><div class="step-header"><div class="step-num ' + s.status + '">' + s.n + '</div><p class="step-title">' + s.title + '</p></div><p class="step-desc">' + s.desc + '</p><div class="step-status">Status: ' + s.status + '</div>' + stepToolbar(s) + '</div>';
       }).join('');
     }, 1000);
   }
