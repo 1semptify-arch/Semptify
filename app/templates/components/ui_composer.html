@@ -144,6 +144,16 @@
         {% endfor %}
     </ol>
     {% endif %}
+    {% if data.images %}
+    <div class="uic-howto-card__images">
+        {% for image in data.images %}
+        <figure class="uic-howto-card__figure">
+            <img class="uic-howto-card__image" src="{{ image.src }}" alt="{{ image.alt or '' }}" loading="lazy">
+            {% if image.caption %}<figcaption class="uic-howto-card__caption">{{ image.caption }}</figcaption>{% endif %}
+        </figure>
+        {% endfor %}
+    </div>
+    {% endif %}
     {% if data.tips %}
     <div class="uic-howto-card__tips">
         <h4 class="uic-howto-card__tips-title">Good to know</h4>

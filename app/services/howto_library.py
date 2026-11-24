@@ -62,6 +62,7 @@ def guides_as_components(guides: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "title": guide.get("title") or "Untitled guide",
                     "summary": guide.get("summary") or "",
                     "steps": guide.get("steps") or [],
+                    "images": guide.get("images") or [],
                     "tips": guide.get("tips") or [],
                     "related_subjects": guide.get("related_subjects") or [],
                 },

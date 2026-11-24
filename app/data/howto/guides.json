@@ -8,6 +8,7 @@
       "title": "plain-language title — what the person is trying to do",
       "summary": "one or two sentences — what this guide gets them",
       "steps": "ordered list; each step has a short 'title' and a 'body' explaining what to actually do",
+      "images": "optional list of screenshots shown after the steps; each has 'src' (a /static/... path, e.g. /static/img/howto/my-guide-1.png), 'alt' (what the image shows — required), and optional 'caption'",
       "tips": "optional list of things learned the hard way — what to watch for",
       "related_subjects": "library subjects this guide relates to (see taxonomy.py ALL_SUBJECTS)",
       "source": "'first_hand' for Brad's experience; anything else needs a note",
@@ -24,6 +25,9 @@
       {"title": "First thing you do", "body": "What to actually do — the real-world version, including where to go, what to bring, what to say."},
       {"title": "Then this", "body": "Next step."},
       {"title": "Last step", "body": "How you know it's done."}
+    ],
+    "images": [
+      {"src": "/static/img/howto/example-1.png", "alt": "What the screenshot shows, in a sentence", "caption": "Optional caption under the image."}
     ],
     "tips": [
       "Things that went wrong or surprised you — what you'd tell a friend doing this for the first time."
@@ -305,6 +309,106 @@
       ],
       "related_subjects": ["law_library", "tenant_rights"],
       "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-23; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "app_log_a_contact",
+      "title": "Log a call, email, text, or visit",
+      "summary": "How to put a landlord contact on your record — the date, how it happened, who it was, and what was said — using the comms log in the Semptify app.",
+      "steps": [
+        {"title": "Open the comms log", "body": "In the app, open the comms log — it sits with your record pages, next to Timeline and Journal. Your storage needs to be connected; the page says so if it is not."},
+        {"title": "Set the date and the method", "body": "Pick the date it happened, then how it happened: phone call, email, text, in person, letter, or other."},
+        {"title": "Say who it was", "body": "Choose who was on the other end — landlord, property manager, maintenance, your attorney or advocate, or other."},
+        {"title": "Write what was said", "body": "In the notes box, put down what was actually said — especially any promises, deadlines, or warnings, in their words where you can."},
+        {"title": "Log it", "body": "Tick 'This is a record' when the contact matters — a promise, a refusal, a warning. Then press Log contact. It lands on your timeline as a communication entry, dated."}
+      ],
+      "tips": [
+        "Log it while it is fresh. Same-day notes carry the details you will want later.",
+        "The 'This is a record' box marks the entry as important on your timeline — use it for anything you may need to point back to.",
+        "Every logged contact shows in the list below the form, dated, so you can see the pattern building."
+      ],
+      "related_subjects": ["evidence", "timeline"],
+      "source": "verified against app/templates/pages/comms_log.html and the /api/timeline/events + /api/timeline/unified calls it makes on 2026-11-24; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "app_capture_conversation",
+      "title": "Capture a conversation while it is fresh",
+      "summary": "How to use quick capture in the Semptify app to record something that just happened — a conversation, a phone call, a notice — with photos, files, or audio attached.",
+      "steps": [
+        {"title": "Open quick capture", "body": "From your home page, open quick capture. To start on a conversation specifically, the capture link for conversations opens it with the Conversation card already picked."},
+        {"title": "Pick the kind of thing", "body": "Tap the card that fits: Got a Notice, Conversation, Phone Call, Repair Issue, Feeling Pressured, Payment Issue, or Something Else. Phone Call opens extra boxes — which way the call went, who it was, and how long it lasted."},
+        {"title": "Say what happened", "body": "Describe it in your own words — what was said, what was done. That box is required. Add the date, and if you want, the time, who was involved, and where."},
+        {"title": "Attach what you have", "body": "Add photos, documents, or recordings — upload files, or capture a photo or audio right there. The page may ask to use your camera or microphone; allow it only if you are recording."},
+        {"title": "Save it", "body": "Press Save This Record. The entry lands on your record, dated, with anything you attached."}
+      ],
+      "tips": [
+        "You can speak instead of type — the microphone next to 'What happened' takes dictation.",
+        "'This is a priority' flags the entry for attention — save it for the ones that truly are.",
+        "Quick capture is built for the moment. For a routine call you are logging afterward, the comms log asks the same questions with less to fill in."
+      ],
+      "related_subjects": ["evidence", "timeline"],
+      "source": "verified against app/templates/pages/tenant_capture.html on 2026-11-24; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "app_delivery_inbox",
+      "title": "Open, sign, or decline a document sent to you",
+      "summary": "How to handle a document an advocate, attorney, or manager sends you in the Semptify app — read it in your inbox, then sign it, acknowledge it, or decline it with a reason.",
+      "steps": [
+        {"title": "Open your office inbox", "body": "In the app, open Office, then Inbox. Anything sent to you lands there — the unread count shows what is new."},
+        {"title": "Open the delivery", "body": "Tap the item. Opening it marks it as read for the record and shows the notice — what kind of action it asks for and who sent it."},
+        {"title": "Read before you act", "body": "Read the document and the note that came with it. If it has a deadline, the notice says so."},
+        {"title": "Choose your action", "body": "Sign Document signs it — a confirm step asks you to be sure first. Acknowledge says you saw it. Reject declines it — you can give a reason, and the sender is told. Save to Vault keeps a copy in your record."},
+        {"title": "Check it landed", "body": "After an action the page confirms it and the inbox refreshes. Signed and acknowledged items show their new state on your record."}
+      ],
+      "tips": [
+        "The inbox refreshes itself when something new arrives — the page may ask to allow notifications.",
+        "Declining is a real answer, not a failure — give the reason so the record shows why.",
+        "Only the send side is limited to professionals. Everything that lands in your inbox is yours to act on."
+      ],
+      "related_subjects": ["evidence", "tenant_rights"],
+      "source": "verified against app/templates/pages/office_inbox.html and app/modules/document_delivery/router.py on 2026-11-24; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "app_share_for_review",
+      "title": "Share your case with a reviewer",
+      "summary": "How to give an attorney, advocate, or legal-aid reviewer a private link to the parts of a case you choose — and how to answer the questions they leave you.",
+      "steps": [
+        {"title": "Open Share your case file", "body": "In the app, open Legal Share — the page is called 'Share your case file.' It walks you through one choice at a time, top to bottom."},
+        {"title": "Pick the case and what to include", "body": "Choose the case, then check what the reviewer can see. Filed documents and exhibits start checked; drafts stay unchecked. Decide whether to include your case notes and the case summary."},
+        {"title": "Say who it is for", "body": "Name the reviewer — for yourself, like 'Attorney Lee' or 'legal aid intake.' You can add their email or phone and a short note they see at the top of the page."},
+        {"title": "Set how long the link works", "body": "Choose 7, 30, or 90 days. When it expires — or when you turn it off — the link stops working."},
+        {"title": "Create and send the link", "body": "Press 'Create the link,' then copy it or use 'Send by email.' The reviewer opens it with no sign-in and reads only what you checked."},
+        {"title": "Watch for questions", "body": "Back on the same page, 'Questions from reviewers' shows anything they asked, with the share it belongs to. Write your answer there — it goes back on the same thread."}
+      ],
+      "tips": [
+        "Treat the link like handing someone the paper — anyone who has it can read what you checked, including people it gets forwarded to.",
+        "If a lawyer sent you a document first, ask them before sharing it on — passing it along can undo the confidentiality that protects lawyer-client work.",
+        "Documents open exactly as they sit in your record, including details saved inside the file. Check anything sensitive before you share.",
+        "You can turn a link off anytime from 'Your shared links.' Nothing is sent automatically — you choose who gets it."
+      ],
+      "related_subjects": ["evidence", "law_library"],
+      "source": "verified against app/templates/pages/legal_share.html, static/js/legal_share.js, and app/modules/legal_share/router.py on 2026-11-24; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "app_message_a_professional",
+      "title": "Get an answer back to a professional",
+      "summary": "The Semptify app has no open chat page. Reaching a professional back works through two doors — answering a reviewer's questions on a shared case, or responding to a document they delivered to you.",
+      "steps": [
+        {"title": "If a reviewer asked a question", "body": "Open Legal Share — 'Share your case file.' 'Questions from reviewers' shows each question and the share it belongs to. Write your answer there; it goes back on the same thread."},
+        {"title": "If a document needs a response", "body": "Open Office, then Inbox, and open the delivery. Acknowledge says you saw it. Reject lets you decline and give a reason — the reason goes back to the sender."},
+        {"title": "If you need to start the conversation", "body": "Create a share link so they can read the case and ask you questions inside it — or reach them the way you normally do. Semptify does not send open messages for you yet."}
+      ],
+      "tips": [
+        "Unread questions are counted on your shared links — check back after you send one.",
+        "Replies on a share stay attached to that share, so both sides see the same context.",
+        "A reason on a declined delivery is part of the record — plain and factual reads best."
+      ],
+      "related_subjects": ["evidence", "tenant_rights"],
+      "source": "verified against app/templates/pages/office_inbox.html, static/js/legal_share.js, and app/modules/document_delivery/router.py on 2026-11-24; no rendered tenant conversations page exists (API-only), so this guide covers the two real reply surfaces per handoffs/library-guide-outline.md",
       "status": "published"
     }
   ]
