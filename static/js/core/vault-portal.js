@@ -274,13 +274,13 @@ function getUserIdFromCookie() {
 async function uploadToVault(fileCount, skipDetails = false) {
   const files = window.vaultPendingFiles;
   if (!files || files.length === 0) {
-    alert('No files selected');
+    SemptifyFeedback.error('No files selected');
     return;
   }
 
   const userId = getUserIdFromCookie();
   if (!userId) {
-    alert('You must be signed in to upload documents.');
+    SemptifyFeedback.error('You must be signed in to upload documents.');
     return;
   }
 
@@ -363,18 +363,18 @@ async function uploadToVault(fileCount, skipDetails = false) {
     window.dispatchEvent(new CustomEvent('vault:uploaded', {
       detail: { fileCount: uploadedCount, vault_id: firstVaultId, timestamp: new Date().toISOString() }
     }));
-    alert(`${uploadedCount} document(s) uploaded.\n\nOCR and metadata extraction are running in the background.`);
+    SemptifyFeedback.success(`${uploadedCount} document(s) uploaded. OCR and metadata extraction are running in the background.`);
   }
 
   if (authRedirectUrl) {
-    if (confirm("We're reconnecting you to your storage. Your documents are safe. Continue?")) {
+    if (await SemptifyFeedback.confirm("We're reconnecting you to your storage. Your documents are safe. Continue?", { title: 'Reconnect storage', confirmLabel: 'Continue' })) {
       window.location.href = authRedirectUrl;
       return;
     }
   }
 
   if (errors.length > 0) {
-    alert('Upload failed for some files:\n\n' + errors.join('\n'));
+    SemptifyFeedback.error('Upload failed for some files: ' + errors.join(' · '));
   }
 
   closeVaultCapture();

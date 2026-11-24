@@ -687,12 +687,12 @@
     }
     
     // Close tab
-    function closeTab(event, path) {
+    async function closeTab(event, path) {
       event.stopPropagation();
       
       const file = openFiles.get(path);
       if (file && file.modified) {
-        if (!confirm(`${file.name} has unsaved changes. Close anyway?`)) {
+        if (!await SemptifyFeedback.confirm(`${file.name} has unsaved changes. Close anyway?`, { title: 'Unsaved changes', confirmLabel: 'Close anyway', danger: true })) {
           return;
         }
       }
@@ -762,7 +762,7 @@
     
     // Deploy changes
     async function deployChanges() {
-      if (!confirm('Deploy all changes to production? This will push to GitHub.')) {
+      if (!await SemptifyFeedback.confirm('Deploy all changes to production? This will push to GitHub.', { title: 'Deploy to production', confirmLabel: 'Deploy', danger: true })) {
         return;
       }
       

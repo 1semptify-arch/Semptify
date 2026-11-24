@@ -101,6 +101,10 @@ VAULT_CONTACTS_FILE = normalize_cloud_path(f"{VAULT_CONTACTS}/contacts.json")
 VAULT_RECORDS = normalize_cloud_path(f"{VAULT_ROOT}/records")
 VAULT_RECORDS_FILE = normalize_cloud_path(f"{VAULT_RECORDS}/records.json")
 
+# Per-user setup profile — the first-run wizard's saved profile (display name +
+# role label). Plain JSON record, user-owned; not an overlay anchor.
+VAULT_PROFILE_FILE = normalize_cloud_path(f"{VAULT_RECORDS}/profile.json")
+
 # Per-user derived-data anchor for computed tenant artifacts (pattern detection
 # records first). Derived means regenerated from vault documents — still
 # tenant-owned, so it lives in the user's cloud, not the server DB.

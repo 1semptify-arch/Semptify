@@ -2958,3 +2958,25 @@
   health_check: tools.module_health.check_executive_admin
   test_suite: tests/module_health/test_executive_admin.py
   status: unverified
+- id: coview
+  display_name: Co-View / Shared Viewing
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.coview.router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified
+- id: intake_router
+  display_name: Document Center Intake
+  category: advanced
+  tier: B
+  owner: brad
+  version: 1.0.0
+  module_path: app.modules.document_center.intake_router
+  health_check: TODO
+  test_suite: TODO
+  last_verified: null
+  status: unverified

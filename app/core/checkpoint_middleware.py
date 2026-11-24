@@ -63,8 +63,6 @@ EXEMPT_PATHS = {
     "/contact",
     "/privacy",
     "/terms",
-    "/turnbuchalla",  # Turnbuchalla public bill platform — static pages, no checkpoint
-    "/turnbuchalla/",
 }
 
 # Protected paths - checkpoint required if no session

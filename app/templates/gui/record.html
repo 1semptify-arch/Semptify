@@ -32,7 +32,7 @@
                 <option value="event_date">Event date</option>
                 <option value="received_date">Received date</option>
             </select>
-            <button id="exportBtn" class="shell-btn shell-btn--sm" type="button" disabled>Export my case</button>
+            <button id="exportBtn" class="shell-btn shell-btn--sm" type="button" hidden>Export my case</button>
         </span>
     </div>
     <div id="docList">
@@ -124,7 +124,7 @@
     function render(docs) {
         docList.innerHTML = '';
         docCount.textContent = docs.length ? docs.length + ' file' + (docs.length === 1 ? '' : 's') : '';
-        exportBtn.disabled = docs.length === 0;
+        exportBtn.hidden = docs.length === 0;
         if (!docs.length) {
             docList.appendChild(docEmpty);
             docEmpty.style.display = '';

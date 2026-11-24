@@ -487,8 +487,8 @@
     });
 
     // Reset settings
-    document.getElementById('reset-settings-btn').addEventListener('click', function () {
-      if (confirm('Reset all settings to defaults?')) {
+    document.getElementById('reset-settings-btn').addEventListener('click', async function () {
+      if (await SemptifyFeedback.confirm('Reset all settings to defaults?', { title: 'Reset to defaults', confirmLabel: 'Reset' })) {
         fetch('/settings/reset', { method: 'POST' })
           .then(function (res) {
             if (res.ok) window.location.reload();
@@ -497,8 +497,8 @@
     });
 
     // Delete account
-    document.getElementById('delete-account-btn').addEventListener('click', function () {
-      if (confirm('Permanently delete your account? This cannot be undone.')) {
+    document.getElementById('delete-account-btn').addEventListener('click', async function () {
+      if (await SemptifyFeedback.confirm('Permanently delete your account? This cannot be undone.', { title: 'Delete account', confirmLabel: 'Delete account', danger: true })) {
         fetch('/settings/delete-account', { method: 'POST' })
           .then(function (res) {
             if (res.ok) window.location.href = '/';

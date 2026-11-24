@@ -451,7 +451,7 @@
 
     // Logout function
     async function logout() {
-      if (confirm('Logout of admin panel?')) {
+      if (await SemptifyFeedback.confirm('Log out of the admin panel?', { confirmLabel: 'Log out' })) {
         window.location.href = '/admin/logout';
       }
     }
@@ -642,7 +642,7 @@
 
     // Impersonate user
     async function impersonateUser(userId) {
-      if (!confirm(`Start impersonating user ${userId}?\n\nAll actions will be logged.`)) {
+      if (!await SemptifyFeedback.confirm(`Start impersonating user ${userId}?\n\nAll actions will be logged.`, { title: 'Impersonate user', confirmLabel: 'Impersonate' })) {
         return;
       }
 
@@ -667,7 +667,7 @@
                       `${result.warning}\n\n` +
                       `Proceed to ${result.landing_page}?`;
           
-          if (confirm(msg)) {
+          if (await SemptifyFeedback.confirm(msg, { title: 'Impersonation ready', confirmLabel: 'Proceed' })) {
             window.location.href = result.landing_page || '/home.html';
           }
         } else {
@@ -680,18 +680,18 @@
 
     // Reset user gates
     async function resetUserGates(userId) {
-      const gates = prompt(
+      const gates = await SemptifyFeedback.prompt(
         `Reset gates for user ${userId}?\n\n` +
         `Enter gates to reset (comma-separated):\n` +
         `Options: storage_connected, vault_initialized`,
-        'storage_connected,vault_initialized'
+        { title: 'Reset user gates', defaultValue: 'storage_connected,vault_initialized' }
       );
       
       if (!gates) return;
       
       const gatesList = gates.split(',').map(g => g.trim()).filter(g => g);
       
-      if (!confirm(`Reset these gates for ${userId}?\n\n${gatesList.join('\n')}\n\nUser will need to re-complete these steps.`)) {
+      if (!await SemptifyFeedback.confirm(`Reset these gates for ${userId}?\n\n${gatesList.join('\n')}\n\nUser will need to re-complete these steps.`, { title: 'Reset user gates', confirmLabel: 'Reset gates', danger: true })) {
         return;
       }
 
@@ -1088,7 +1088,7 @@
 
     // Toggle module
     async function toggleModule(moduleName, currentlyEnabled) {
-      if (!confirm(`${currentlyEnabled ? 'Disable' : 'Enable'} module ${moduleName}?\n\nThis takes effect immediately for routing.`)) {
+      if (!await SemptifyFeedback.confirm(`${currentlyEnabled ? 'Disable' : 'Enable'} module ${moduleName}?\n\nThis takes effect immediately for routing.`, { title: `${currentlyEnabled ? 'Disable' : 'Enable'} module`, confirmLabel: currentlyEnabled ? 'Disable' : 'Enable', danger: currentlyEnabled })) {
         return;
       }
       
@@ -1361,7 +1361,7 @@
         SemptifyFeedback.success(`Platform Metrics test passed. Sessions: ${data.sessions?.total_in_memory || 0}, Active: ${data.sessions?.active || 0}, Unique Users: ${data.sessions?.unique_users || 0}, Modules: ${data.modules?.total_active || 0}`);
       } catch (error) {
         const errorMsg = `Platform Metrics Test FAILED\n\nError: ${error.message}\n\nEndpoint: ${ADMIN_API_BASE}/api/system/status`;
-        if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
+        if (await SemptifyFeedback.confirm(errorMsg + '\n\nSend this error to Cascade for fixing?', { title: 'Test failed', confirmLabel: 'Send to Cascade' })) {
           sendErrorToCascade('Platform Metrics', error, '/admin-console/api/system/status');
         }
       } finally {
@@ -1391,7 +1391,7 @@
         SemptifyFeedback.success(`User Breakdown test passed. Total Users: ${total}. API returned user data successfully.`);
       } catch (error) {
         const errorMsg = `User Breakdown Test FAILED\n\nError: ${error.message}\n\nEndpoint: ${ADMIN_API_BASE}/api/users`;
-        if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
+        if (await SemptifyFeedback.confirm(errorMsg + '\n\nSend this error to Cascade for fixing?', { title: 'Test failed', confirmLabel: 'Send to Cascade' })) {
           sendErrorToCascade('User Breakdown', error, '/admin-console/api/users');
         }
       } finally {
@@ -1421,7 +1421,7 @@
         SemptifyFeedback.success(`Recent Activity test passed. Audit Log Entries: ${count}. API returned audit data successfully.`);
       } catch (error) {
         const errorMsg = `Recent Activity Test FAILED\n\nError: ${error.message}\n\nEndpoint: ${ADMIN_API_BASE}/api/audit`;
-        if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
+        if (await SemptifyFeedback.confirm(errorMsg + '\n\nSend this error to Cascade for fixing?', { title: 'Test failed', confirmLabel: 'Send to Cascade' })) {
           sendErrorToCascade('Recent Activity', error, '/admin-console/api/audit');
         }
       } finally {
@@ -1450,7 +1450,7 @@
         SemptifyFeedback.success(`Security Metrics test passed. Rate Limits: ${data.metrics?.rate_limited_total || 0}, Total Requests: ${data.metrics?.requests_total || 0}. System status endpoint is healthy.`);
       } catch (error) {
         const errorMsg = `Security Metrics Test FAILED\n\nError: ${error.message}\n\nEndpoint: ${ADMIN_API_BASE}/api/system/status`;
-        if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
+        if (await SemptifyFeedback.confirm(errorMsg + '\n\nSend this error to Cascade for fixing?', { title: 'Test failed', confirmLabel: 'Send to Cascade' })) {
           sendErrorToCascade('Security Metrics', error, '/admin-console/api/system/status');
         }
       } finally {
@@ -1478,7 +1478,7 @@
         SemptifyFeedback.success('MNDES Compliance test passed. Compliance Guide page is accessible. MNDES compliance endpoint is healthy.');
       } catch (error) {
         const errorMsg = `MNDES Compliance Test FAILED\n\nError: ${error.message}\n\nEndpoint: /mndes/compliance-guide`;
-        if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
+        if (await SemptifyFeedback.confirm(errorMsg + '\n\nSend this error to Cascade for fixing?', { title: 'Test failed', confirmLabel: 'Send to Cascade' })) {
           sendErrorToCascade('MNDES Compliance', error, '/mndes/compliance-guide');
         }
       } finally {
@@ -1565,7 +1565,7 @@ Please fix this issue in the admin dashboard.
         SemptifyFeedback.success(`System Config test passed. Tiers: ${tiersData.tiers.filter(t => t.enabled).length}/${tiersData.tiers.length}, Modules: ${modulesData.installed_modules?.length || 0}, Feature Flags: ${Object.keys(flagsData.feature_flags || {}).length}`);
       } catch (error) {
         const errorMsg = `System Config Test FAILED\n\nError: ${error.message}\n\nEndpoints: /admin-console/api/system/*`;
-        if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
+        if (await SemptifyFeedback.confirm(errorMsg + '\n\nSend this error to Cascade for fixing?', { title: 'Test failed', confirmLabel: 'Send to Cascade' })) {
           sendErrorToCascade('System Config', error, '/admin-console/api/system/*');
         }
       } finally {
@@ -1597,7 +1597,7 @@ Please fix this issue in the admin dashboard.
         SemptifyFeedback.success(`API Keys test passed. Configured: ${configured}/${total}. Environment variables endpoint is healthy.`);
       } catch (error) {
         const errorMsg = `API Keys Test FAILED\n\nError: ${error.message}\n\nEndpoint: /admin-console/api/system/env`;
-        if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
+        if (await SemptifyFeedback.confirm(errorMsg + '\n\nSend this error to Cascade for fixing?', { title: 'Test failed', confirmLabel: 'Send to Cascade' })) {
           sendErrorToCascade('API Keys', error, '/admin-console/api/system/env');
         }
       } finally {
@@ -1628,7 +1628,7 @@ Please fix this issue in the admin dashboard.
         SemptifyFeedback.success(`Analytics test passed. Unique Users: ${overviewData.users?.unique_users || 0}, 7-day Retention: ${retentionData.retention_rate_7d || 0}%, 30-day Retention: ${retentionData.retention_rate_30d || 0}%`);
       } catch (error) {
         const errorMsg = `Analytics Test FAILED\n\nError: ${error.message}\n\nEndpoints: /admin-console/api/analytics/*`;
-        if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
+        if (await SemptifyFeedback.confirm(errorMsg + '\n\nSend this error to Cascade for fixing?', { title: 'Test failed', confirmLabel: 'Send to Cascade' })) {
           sendErrorToCascade('Analytics', error, '/admin-console/api/analytics/*');
         }
       } finally {
@@ -1659,7 +1659,7 @@ Please fix this issue in the admin dashboard.
         SemptifyFeedback.success(`Audit Log test passed. Recent Entries: ${count}. Audit log endpoint is healthy.`);
       } catch (error) {
         const errorMsg = `Audit Log Test FAILED\n\nError: ${error.message}\n\nEndpoint: /admin-console/api/audit`;
-        if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
+        if (await SemptifyFeedback.confirm(errorMsg + '\n\nSend this error to Cascade for fixing?', { title: 'Test failed', confirmLabel: 'Send to Cascade' })) {
           sendErrorToCascade('Audit Log', error, '/admin-console/api/audit');
         }
       } finally {

@@ -120,8 +120,8 @@
       btn.disabled = false;
     }, 1500);
   }
-  function declineDoc() {
-    if (confirm('Are you sure you want to decline?')) SemptifyFeedback.info('Document declined.');
+  async function declineDoc() {
+    if (await SemptifyFeedback.confirm('Decline this document?', { confirmLabel: 'Decline', danger: true })) SemptifyFeedback.info('Document declined.');
   }
 </script>
 {% endblock %}

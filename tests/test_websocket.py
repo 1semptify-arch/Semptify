@@ -31,6 +31,8 @@ class MockWebSocket:
     def __init__(self):
         self.accepted = False
         self.closed = False
+        self.close_code = None
+        self.close_reason = None
         self.messages_sent = []
         self.messages_to_receive = []
         self.cookies = {}
@@ -41,6 +43,8 @@ class MockWebSocket:
 
     async def close(self, code=1000, reason=None):
         self.closed = True
+        self.close_code = code
+        self.close_reason = reason
 
     async def send_json(self, data):
         self.messages_sent.append(data)
@@ -71,6 +75,13 @@ class MockWebSocket:
         self.messages_to_receive.append(message)
 
 
+def _authed_ws(user_id: str) -> MockWebSocket:
+    """MockWebSocket carrying a valid HMAC-signed semptify_uid cookie."""
+    ws = MockWebSocket()
+    ws.cookies = {"semptify_uid": sign_user_id(user_id)}
+    return ws
+
+
 # =============================================================================
 # WebSocket Events Tests
 # =============================================================================
@@ -78,6 +89,23 @@ class MockWebSocket:
 
 class TestWebSocketEvents:
     """Tests for the main /ws/events endpoint."""
+
+    @pytest.mark.anyio
+    async def test_websocket_events_requires_auth(self):
+        """Missing or unsigned semptify_uid cookies are closed with 1008."""
+        from app.modules.websocket.router import websocket_events
+
+        for cookies in ({}, {"semptify_uid": "unsigned_value"}):
+            ws = MockWebSocket()
+            ws.cookies = cookies
+            ws.queue_message({"type": "ping"})
+
+            await websocket_events(ws)
+
+            assert ws.accepted is True
+            assert ws.closed is True
+            assert ws.close_code == 1008
+            assert not any(m.get("type") == "connected" for m in ws.messages_sent)
 
     def test_websocket_status_endpoint(self, test_client):
         """Test GET /ws/status returns WebSocket info."""
@@ -93,8 +121,7 @@ class TestWebSocketEvents:
         """Test WebSocket connection sends welcome message."""
         from app.modules.websocket.router import websocket_events
 
-        ws = MockWebSocket()
-        ws.cookies = {"semptify_uid": "test_user_123"}
+        ws = _authed_ws("test_user_123")
 
         # Simulate ping then disconnect
         ws.queue_message({"type": "ping"})
@@ -117,8 +144,7 @@ class TestWebSocketEvents:
         """Test WebSocket ping/pong mechanism."""
         from app.modules.websocket.router import websocket_events
 
-        ws = MockWebSocket()
-        ws.cookies = {"semptify_uid": "test_user"}
+        ws = _authed_ws("test_user")
         ws.queue_message({"type": "ping"})
 
         await websocket_events(ws)
@@ -133,8 +159,7 @@ class TestWebSocketEvents:
         """Test WebSocket event subscription."""
         from app.modules.websocket.router import websocket_events
 
-        ws = MockWebSocket()
-        ws.cookies = {}
+        ws = _authed_ws("test_user")
         ws.queue_message({"type": "subscribe", "events": ["document_uploaded", "case_updated"]})
 
         await websocket_events(ws)
@@ -150,8 +175,7 @@ class TestWebSocketEvents:
         """Test WebSocket event history request."""
         from app.modules.websocket.router import websocket_events
 
-        ws = MockWebSocket()
-        ws.cookies = {}
+        ws = _authed_ws("test_user")
         ws.queue_message({"type": "get_history", "limit": 10})
 
         await websocket_events(ws)
@@ -167,8 +191,7 @@ class TestWebSocketEvents:
         """Test WebSocket handles invalid JSON gracefully."""
         from app.modules.websocket.router import websocket_events
 
-        ws = MockWebSocket()
-        ws.cookies = {}
+        ws = _authed_ws("test_user")
         # Override receive_text to return invalid JSON
         ws.messages_to_receive = ["not valid json"]
 
@@ -191,22 +214,29 @@ class TestWebSocketEvents:
 
     @pytest.mark.anyio
     async def test_websocket_user_id_from_cookies(self):
-        """Test user ID extraction from cookies."""
+        """Test user ID extraction verifies the HMAC-signed cookie."""
         from app.modules.websocket.router import get_user_id_from_websocket
 
         ws = MockWebSocket()
 
-        # No cookies
+        # No cookie -> unauthenticated
         ws.cookies = {}
-        assert get_user_id_from_websocket(ws) == "broadcast"
+        assert get_user_id_from_websocket(ws) is None
 
-        # With semptify_uid cookie
-        ws.cookies = {"semptify_uid": "user_abc123"}
+        # Valid signed cookie -> raw user_id
+        ws.cookies = {"semptify_uid": sign_user_id("user_abc123")}
         assert get_user_id_from_websocket(ws) == "user_abc123"
 
-        # Empty user_id
+        # Unsigned or tampered cookies are rejected
+        ws.cookies = {"semptify_uid": "user_abc123"}
+        assert get_user_id_from_websocket(ws) is None
+
+        ws.cookies = {"semptify_uid": "user_abc123.deadbeef"}
+        assert get_user_id_from_websocket(ws) is None
+
+        # Empty cookie value
         ws.cookies = {"semptify_uid": ""}
-        assert get_user_id_from_websocket(ws) == "broadcast"
+        assert get_user_id_from_websocket(ws) is None
 
 
 # =============================================================================
@@ -220,9 +250,7 @@ class TestBrainWebSocket:
     @staticmethod
     def _authed_ws() -> MockWebSocket:
         """MockWebSocket with a valid signed semptify_uid cookie."""
-        ws = MockWebSocket()
-        ws.cookies = {"semptify_uid": sign_user_id("GUBRAIN12345")}
-        return ws
+        return _authed_ws("GUBRAIN12345")
 
     @pytest.mark.skip(reason="Positronic Brain REST router is disabled in product manifest")
     def test_brain_status_endpoint(self, test_client):
@@ -419,8 +447,7 @@ class TestWebSocketProtocol:
         """All server messages should have 'type' field."""
         from app.modules.websocket.router import websocket_events
 
-        ws = MockWebSocket()
-        ws.cookies = {}
+        ws = _authed_ws("test_user")
         ws.queue_message({"type": "ping"})
 
         await websocket_events(ws)
@@ -433,8 +460,7 @@ class TestWebSocketProtocol:
         """Error messages should have standard format."""
         from app.modules.websocket.router import websocket_events
 
-        ws = MockWebSocket()
-        ws.cookies = {}
+        ws = _authed_ws("test_user")
         ws.messages_to_receive = ["invalid json {{{"]
 
         async def receive_invalid():
@@ -500,8 +526,7 @@ class TestWebSocketSecurity:
         from app.modules.websocket.router import get_user_id_from_websocket
 
         # The function should only look at cookies
-        ws = MockWebSocket()
-        ws.cookies = {"semptify_uid": "from_cookie"}
+        ws = _authed_ws("from_cookie")
 
         # Even if query_params existed with different value, should use cookie
         result = get_user_id_from_websocket(ws)
@@ -513,8 +538,7 @@ class TestWebSocketSecurity:
         from app.core.event_bus import event_bus
         from app.modules.websocket.router import websocket_events
 
-        ws = MockWebSocket()
-        ws.cookies = {"semptify_uid": "disconnect_test_user"}
+        ws = _authed_ws("disconnect_test_user")
         # Empty queue causes immediate disconnect
 
         # Should not raise exception
@@ -559,8 +583,7 @@ class TestWebSocketPerformance:
         """Test rapid ping/pong doesn't cause issues."""
         from app.modules.websocket.router import websocket_events
 
-        ws = MockWebSocket()
-        ws.cookies = {}
+        ws = _authed_ws("test_user")
 
         # Queue multiple pings
         for _ in range(10):
@@ -576,8 +599,7 @@ class TestWebSocketPerformance:
         """Test message order is preserved."""
         from app.modules.websocket.router import websocket_events
 
-        ws = MockWebSocket()
-        ws.cookies = {}
+        ws = _authed_ws("test_user")
 
         ws.queue_message({"type": "ping"})
         ws.queue_message({"type": "subscribe", "events": ["test"]})

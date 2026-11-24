@@ -380,7 +380,7 @@ async function copyPrompt(id) {
 }
 
 async function deleteTask(id) {
-  if (!confirm('Delete this task?')) return;
+  if (!await SemptifyFeedback.confirm('Delete this task?', { confirmLabel: 'Delete', danger: true })) return;
   await api(`/tasks/${id}`, { method: 'DELETE' });
   showToast('Task deleted');
   await loadTasks();
@@ -431,7 +431,7 @@ async function exportJson() {
 }
 
 async function clearAll() {
-  if (!confirm('Delete ALL tasks? This cannot be undone.')) return;
+  if (!await SemptifyFeedback.confirm('Delete ALL tasks? This cannot be undone.', { title: 'Delete all tasks', confirmLabel: 'Delete all', danger: true })) return;
   for (const t of [...tasks]) {
     await api(`/tasks/${t.id}`, { method: 'DELETE' });
   }

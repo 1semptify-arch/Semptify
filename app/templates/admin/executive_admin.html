@@ -127,6 +127,7 @@
 <main id="main"><div class="load">Loading the office…</div></main>
 <div id="toast"></div>
 
+<script src="/static/components/feedback.js"></script>
 <script>
 "use strict";
 const $ = (s, el) => (el || document).querySelector(s);
@@ -562,7 +563,7 @@ function wire(main) {
     catch (e) { toast(e.message, true); }
   };
   $$("[data-del-member]", main).forEach(b => b.onclick = async () => {
-    if (!confirm("Remove this board member?")) return;
+    if (!await SemptifyFeedback.confirm("Remove this board member?", { confirmLabel: "Remove", danger: true })) return;
     try { await api("board/" + b.dataset.delMember, {method: "DELETE"}); show("board"); } catch (e) { toast(e.message, true); }
   });
 
@@ -622,7 +623,7 @@ function wire(main) {
     catch (e) { toast(e.message, true); }
   };
   $$("[data-del-entry]", main).forEach(b => b.onclick = async () => {
-    if (!confirm("Delete this ledger entry?")) return;
+    if (!await SemptifyFeedback.confirm("Delete this ledger entry?", { confirmLabel: "Delete", danger: true })) return;
     try { await api("ledger/" + b.dataset.delEntry, {method: "DELETE"}); show("books"); } catch (e) { toast(e.message, true); }
   });
   $$("[data-ack]", main).forEach(b => b.onclick = async () => {

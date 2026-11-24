@@ -117,8 +117,8 @@
     }).catch(() => { working.classList.add('hidden'); btn.disabled = false; });
     return false;
   }
-  function deleteContact(id) {
-    if (confirm('Delete this contact?')) {
+  async function deleteContact(id) {
+    if (await SemptifyFeedback.confirm('Delete this contact?', { confirmLabel: 'Delete', danger: true })) {
       fetch('/contacts/delete/' + id, { method: 'POST' }).then(() => location.reload());
     }
   }

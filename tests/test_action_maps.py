@@ -34,7 +34,6 @@ class TestQuickAction:
         assert qa.telemetry_event is None
         assert qa.required_roles is None
         assert qa.confirmation_prompt is None
-        assert qa.disabled_states is None
 
     def test_full_construction(self):
         qa = QuickAction(
@@ -47,7 +46,6 @@ class TestQuickAction:
             telemetry_event="ev",
             required_roles=["admin"],
             confirmation_prompt="Sure?",
-            disabled_states=["locked"],
         )
         assert qa.action_id == "a"
         assert qa.target_params == {"k": "v"}

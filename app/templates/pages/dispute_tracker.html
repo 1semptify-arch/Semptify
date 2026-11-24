@@ -221,6 +221,7 @@
 
         <section class="dt-panel dt-add-compare" aria-labelledby="add-compare-heading">
             <h2 id="add-compare-heading">Add a comparison</h2>
+            {% if disputes %}
             <form method="post" action="{{ url_for('create_comparison') }}" class="dt-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 <div class="form-group">
@@ -270,6 +271,9 @@
                     <button type="submit" class="btn btn--primary">Add comparison</button>
                 </div>
             </form>
+            {% else %}
+            <p class="dt-empty">Add a dispute first — a comparison always attaches to one.</p>
+            {% endif %}
         </section>
 
         <section class="dt-panel dt-compare-list" aria-labelledby="comparisons-heading">

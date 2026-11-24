@@ -528,9 +528,9 @@ document.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-doc-review]');
     if (!btn) return;
     const docId = btn.getAttribute('data-doc-review');
-    const status = window.prompt('Review status: reviewed, flagged, or approved?', 'reviewed');
+    const status = await SemptifyFeedback.prompt('Review status: reviewed, flagged, or approved?', 'reviewed');
     if (!status || !['reviewed', 'flagged', 'approved'].includes(status)) return;
-    const notes = window.prompt('Optional notes:', '') || '';
+    const notes = await SemptifyFeedback.prompt('Optional notes:', '') || '';
     try {
         const resp = await fetch(`/api/advocate/clients/${CLIENT_ID}/documents/${docId}/review`, {
             method: 'POST',
@@ -711,7 +711,7 @@ document.addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-overlay-delete]');
     if (!btn) return;
     const overlayId = btn.getAttribute('data-overlay-delete');
-    if (!confirm('Delete this annotation?')) return;
+    if (!await SemptifyFeedback.confirm('Delete this annotation?', { confirmLabel: 'Delete', danger: true })) return;
     try {
         const resp = await fetch(`/api/advocate/clients/${CLIENT_ID}/overlays/${overlayId}`, { method: 'DELETE' });
         if (resp.ok) {
@@ -845,7 +845,7 @@ document.getElementById('btn-review-all').addEventListener('click', async () => 
         SemptifyFeedback.info('All documents already reviewed');
         return;
     }
-    if (!confirm(`Mark ${pending.length} pending document(s) as reviewed?`)) return;
+    if (!await SemptifyFeedback.confirm(`Mark ${pending.length} pending document(s) as reviewed?`, { title: 'Mark reviewed', confirmLabel: 'Mark reviewed' })) return;
     let ok = 0;
     for (const d of pending) {
         try {

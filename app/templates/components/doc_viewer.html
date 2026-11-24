@@ -172,10 +172,14 @@
         }
 
         function updateButtons() {
-            btnPrev.disabled = state.busy || state.page <= 1;
-            btnNext.disabled = state.busy || !state.pages || state.page >= state.pages;
-            btnZoomOut.disabled = state.busy || state.scale <= SCALE_MIN;
-            btnZoomIn.disabled = state.busy || state.scale >= SCALE_MAX;
+            // At a bound the action does not exist (rule 12 — hidden, not
+            // disabled). state.busy stays on `disabled`: that is in-flight
+            // submit gating, which is legitimate.
+            btnPrev.hidden = state.page <= 1;
+            btnNext.hidden = !state.pages || state.page >= state.pages;
+            btnZoomOut.hidden = state.scale <= SCALE_MIN;
+            btnZoomIn.hidden = state.scale >= SCALE_MAX;
+            btnPrev.disabled = btnNext.disabled = btnZoomOut.disabled = btnZoomIn.disabled = state.busy;
         }
 
         function render() {

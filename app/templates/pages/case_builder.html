@@ -144,6 +144,12 @@
     margin-top: 1rem;
 }
 
+.smart-toolbar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
 .btn {
     flex: 1;
     padding: 0.75rem 1rem;
@@ -221,8 +227,7 @@
             <select id="case-select" class="export-select">
                 <option value="">Loading cases...</option>
             </select>
-            <button class="btn btn-secondary" id="btn-pdf" onclick="downloadIntakePacket('pdf')" disabled>PDF</button>
-            <button class="btn btn-secondary" id="btn-zip" onclick="downloadIntakePacket('zip')" disabled>ZIP</button>
+            <div id="intake-toolbar"></div>
         </div>
         <div id="export-error" class="export-error" style="display: none;"></div>
     </div>
@@ -248,7 +253,7 @@
                 <input type="checkbox" id="curated-include-summary" checked>
                 <span>Summary</span>
             </label>
-            <button class="btn btn-secondary" id="btn-curated-export" onclick="downloadCuratedPacket()" disabled>Export ZIP</button>
+            <div id="curated-toolbar"></div>
         </div>
         <div id="curated-export-error" class="export-error" style="display: none;"></div>
     </div>
@@ -311,9 +316,41 @@
 
 </div>
 
+<script src="/static/components/smart-toolbar.js"></script>
 <script>
 let documents = [];
 let selectedDocs = new Set();
+
+// State-driven toolbars (rule 12): export actions only exist once a case
+// list has loaded. EMPTY projects nothing — no disabled buttons.
+const INTAKE_ACTIONS = {
+    'export-pdf': { id: 'export-pdf', label: 'PDF', method: 'CALL' },
+    'export-zip': { id: 'export-zip', label: 'ZIP', method: 'CALL' },
+};
+const INTAKE_RULES = { READY: { contextual: ['export-pdf', 'export-zip'] } };
+const CURATED_ACTIONS = {
+    'export-curated': { id: 'export-curated', label: 'Export ZIP', method: 'CALL' },
+};
+const CURATED_RULES = { READY: { contextual: ['export-curated'] } };
+const TOOLBAR_CLASSES = { wrap: 'smart-toolbar', ghost: 'btn btn-secondary' };
+
+function renderExportToolbars(state) {
+    const act = (a) => {
+        if (a.id === 'export-pdf') downloadIntakePacket('pdf');
+        else if (a.id === 'export-zip') downloadIntakePacket('zip');
+        else if (a.id === 'export-curated') downloadCuratedPacket();
+    };
+    SmartToolbar.render(
+        document.getElementById('intake-toolbar'),
+        SmartToolbar.project(state, INTAKE_ACTIONS, INTAKE_RULES),
+        { act, classes: TOOLBAR_CLASSES }
+    );
+    SmartToolbar.render(
+        document.getElementById('curated-toolbar'),
+        SmartToolbar.project(state, CURATED_ACTIONS, CURATED_RULES),
+        { act, classes: TOOLBAR_CLASSES }
+    );
+}
 
 async function loadDocuments() {
     try {
@@ -415,9 +452,6 @@ function printSummary() {
 async function loadCases() {
     const select = document.getElementById('case-select');
     const curatedSelect = document.getElementById('curated-case-select');
-    const btnPdf = document.getElementById('btn-pdf');
-    const btnZip = document.getElementById('btn-zip');
-    const btnCurated = document.getElementById('btn-curated-export');
     const error = document.getElementById('export-error');
     const curatedError = document.getElementById('curated-export-error');
     try {
@@ -430,6 +464,7 @@ async function loadCases() {
             curatedSelect.innerHTML = '<option value="">No cases yet</option>';
             select.disabled = true;
             curatedSelect.disabled = true;
+            renderExportToolbars('EMPTY');
             return;
         }
         cases.forEach(c => {
@@ -441,9 +476,7 @@ async function loadCases() {
         });
         select.disabled = false;
         curatedSelect.disabled = false;
-        btnPdf.disabled = false;
-        btnZip.disabled = false;
-        btnCurated.disabled = false;
+        renderExportToolbars('READY');
     } catch (e) {
         error.textContent = 'Could not load cases. Try again later.';
         error.style.display = 'block';
@@ -451,6 +484,7 @@ async function loadCases() {
         curatedError.style.display = 'block';
         select.innerHTML = '<option value="">Failed to load cases</option>';
         curatedSelect.innerHTML = '<option value="">Failed to load cases</option>';
+        renderExportToolbars('EMPTY');
     }
 }
 

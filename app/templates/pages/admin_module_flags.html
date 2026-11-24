@@ -436,7 +436,7 @@ async function saveOverride() {
 
 async function deleteOverride() {
   if (!currentEditPath) return;
-  if (!confirm('Remove override and revert to declared values?')) return;
+  if (!await SemptifyFeedback.confirm('Remove override and revert to declared values?', { title: 'Remove override', confirmLabel: 'Remove', danger: true })) return;
   try {
     const resp = await fetch('/admin/api/module-flags/' + encodeURIComponent(currentEditPath), {
       method: 'DELETE',

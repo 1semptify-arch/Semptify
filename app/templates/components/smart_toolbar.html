@@ -1,0 +1,39 @@
+{#
+  Smart toolbar — state-projected action row.
+
+  Contract:
+    Input:  toolbar — output of app.core.smart_toolbar.project_toolbar()
+            {"primary": action|None, "visible": [action...], "overflow": [action...]}
+            Each action: {id, label, endpoint, method ("GET"/"POST"),
+                          confirm (str|None), danger (bool)}
+    Renders ONLY valid actions — never disabled buttons
+    (rule .devin/rules/12-state-driven-actions.md).
+    One primary CTA + up to 3 contextual inline; extras sit behind the
+    native <details> overflow. Zero page-level JavaScript — confirmations
+    are handled globally by SemptifyFeedback via [data-confirm].
+
+  Usage:  {% include "components/smart_toolbar.html" with context %}
+#}
+{% if toolbar and (toolbar.primary or toolbar.visible or toolbar.overflow) %}
+{% macro _action(a, cls) %}
+  {%- if a.method == "GET" -%}
+  <a class="{{ cls }}" href="{{ a.endpoint }}"{% if a.confirm %} data-confirm="{{ a.confirm }}"{% if a.danger %} data-confirm-danger{% endif %}{% endif %}>{{ a.label }}</a>
+  {%- else -%}
+  <form class="smart-toolbar__form" action="{{ a.endpoint }}" method="post"{% if a.confirm %} data-confirm="{{ a.confirm }}"{% if a.danger %} data-confirm-danger{% endif %}{% endif %}>
+    <button type="submit" class="{{ cls }}">{{ a.label }}</button>
+  </form>
+  {%- endif -%}
+{% endmacro %}
+<div class="smart-toolbar flex gap-3" role="toolbar" aria-label="Actions">
+  {% if toolbar.primary %}{{ _action(toolbar.primary, "btn btn--primary") }}{% endif %}
+  {% for a in toolbar.visible %}{{ _action(a, "btn btn--danger" if a.danger else "btn btn--ghost") }}{% endfor %}
+  {% if toolbar.overflow %}
+  <details class="smart-toolbar__overflow">
+    <summary class="btn btn--ghost" aria-label="More actions">&#8942;</summary>
+    <div class="smart-toolbar__menu">
+      {% for a in toolbar.overflow %}{{ _action(a, "smart-toolbar__menu-item" ~ (" text-error" if a.danger else "")) }}{% endfor %}
+    </div>
+  </details>
+  {% endif %}
+</div>
+{% endif %}

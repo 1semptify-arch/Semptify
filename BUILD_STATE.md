@@ -1,3 +1,155 @@
+## Session — 2026-11-23 — POST /setup endpoint: wizard profile + first case persist (swe-2, task task-44171189)
+
+**Context:** intake-85f2d845 — the setup wizard's Next/Finish called
+`saveStep()` POSTing JSON to `/setup`, but only a GET existed (405). Users
+could only progress via Skip; nothing ever saved.
+
+**Done:**
+- `app/main.py` — new `POST /setup` (yellow_access). Step 1 confirms the
+  storage connection; step 2 writes `{name, role}` to the user's vault at
+  `Vault/records/profile.json` (profile data is user-owned — the SSOT
+  privacy rule keeps names out of Semptify's DB); step 3 creates the first
+  case via the canonical `incident_store.create_incident` +
+  `case_builder.save_case` path (INCIDENT overlay + CASE_DATA narrative —
+  title goes in the narrative since save_case normalizes the pointer title
+  to non-PII), then writes `app/data/.setup_complete` for the
+  `/api/setup/check` first-run gate.
+- `app/main.py` — GET /setup now hydrates `profile` from the vault file so
+  re-visiting pre-fills step 2 (best-effort; never breaks page load).
+- `app/core/vault_paths.py` — new `VAULT_PROFILE_FILE` constant (SSOT path).
+- `app/modules/setup/register.py` — new `setup_wizard_save_step`
+  FunctionGroupContract with `allowed_routes=("/setup",)` so the route
+  audit recognizes the page POST's coverage.
+- Wizard `role` values (case_worker/supervisor/admin) persist as an
+  informational profile label only — `users.default_role`/user_id role
+  codes untouched (identity model bakes role into the ID; relabeling is a
+  product decision for Brad).
+- Logged intake-d478e4ab (not fixed): POST /settings likely 405 — same
+  template-batch-3 missing-backend pattern.
+
+**Verified:** `py_compile` clean (main.py, vault_paths.py, register.py);
+live on :8025 (local_dev): unauth POST → 401 auth_required; seeded dev
+user → step1 200 saved, step2 200 + `profile.json` confirmed on vault
+disk, step3 200 `case_id` + INCIDENT overlay + CASE_DATA overlay
+(`narrative` = title + situation) + `.setup_complete` marker; re-GET
+renders `value="Test Tenant"`; route audit "all actionable public routes
+have contract coverage". pytest module_health still running at session
+end (see orchestrator verification JSON).
+
+## Session — 2026-11-23 — smart-toolbar per-page conversion sweep (swe-2, task plan-20261123-smart-toolbar-semptify-pages)
+
+**Context:** Parent rollout `plan-20261123-roll-out-state-driven-smart-toolbar-patt-4123`
+(log: `C:\master-repo\UI_ROLLOUT_LOG.md`). Engine + Jinja partial were already
+installed; this task converted the lifecycle pages and swept remaining
+templates for `disabled`-as-availability-gating violations (rule 12: invalid
+actions don't render — in-flight submit gating stays `disabled`).
+
+**Done:**
+- New shared `static/components/smart-toolbar.js` — client-side port of the
+  engine (`window.SmartToolbar.project/render`, same contract as the Jinja
+  partial + fleet `tools/smart_toolbar.py` JS port) for pages that load state
+  via fetch instead of server render.
+- `pages/case_builder.html` — PDF/ZIP/curated-export buttons now projected
+  (READY → actions, EMPTY/fetch-fail → nothing renders); no more disabled
+  export buttons.
+- `pages/journey.html` — per-step projection: done→Review link, current→
+  Continue primary, locked→no button. Step-3 href corrected to `/case-builder`
+  (`/ui/tool/case-builder` redirects to /tenant/start).
+- `pages/setup_wizard.html` — nav row projected per step (1: Next+Skip,
+  2: Back+Next+Skip, 3: Back+Finish); replaced disabled-toggle wiring.
+- `pages/dispute_tracker.html` — Add-comparison form renders only
+  `{% if disputes %}`, else a "add a dispute first" line.
+- `gui/record.html` — Export hidden until docs exist (`hidden`, not
+  `disabled`); in-flight export disable retained.
+- `gui/home.html` — court-prep Act projected only when a hearing is on the
+  calendar (file is unrouted today — /gui/home redirects; fix applied for
+  rule-12 cleanliness, logged intake-fad73e98).
+- `pages/briefcase.html` — Export renders only `{% if documents %}`.
+- `pages/law_linker_popout.html` — save renders only with text/URL; after
+  save the button becomes a "Saved" status span.
+- `pages/coview.html` — `.cv-bar` action bars leave the DOM on session end
+  AND on session-not-found.
+- `pages/office_signer.html` — consumed sign/reject becomes status span.
+  (Unrouted template — logged intake-f0a1aac6.)
+- `pages/admin_script_catalog.html` — always-disabled Run button replaced
+  with "Run from a terminal" text.
+- `components/doc_viewer.html` — nav/zoom buttons `hidden` at bounds;
+  `disabled` kept only for `state.busy` in-flight gating.
+- `app/core/action_maps.py` — removed dead `QuickAction.disabled_states`
+  field; `tests/test_action_maps.py` updated.
+- Not changed (legit gating): packet_builder/dakota_defense/counterclaim
+  in-flight and input-pending disableds; disabled `<option>` placeholders.
+- Logged to intake (pre-existing, not fixed): POST /setup 405 — wizard
+  saveStep has no endpoint (intake-85f2d845).
+
+**Verified:** `pytest tests/test_action_maps.py` 22/22 passed (single-file
+run trips the global `--cov-fail-under=30` gate — expected, not a failure);
+`py_compile` clean on changed py; `node --check` clean; all 12 changed
+templates Jinja-parse clean; node smoke test of the JS engine (project +
+render + EMPTY clear). Live on :8025 with seeded user: journey locked steps
+render zero buttons, case-builder EMPTY projects nothing (stubbed API),
+READY renders PDF/ZIP/Export, wizard nav correct on all 3 steps incl. Back,
+dispute-tracker compare form renders with disputes, briefcase empty state
+has no export button, law-linker save→"Saved", coview not-found strips all
+bars, gui/record export visible with docs; 390px mobile nav stacks; console
+clean except the logged 405.
+
+## Session — 2026-11-21 — test_websocket.py synced to signed-cookie /ws auth (swe-2, task task-dbe64fe1)
+
+**Context:** `TestWebSocketEvents` (and the same staleness in
+TestWebSocketProtocol/Security/Performance) still drove `/ws/events` with
+unsigned or missing `semptify_uid` cookies and expected the old
+`"broadcast"` default user_id. Since the auth-hardening commit,
+`get_user_id_from_websocket` verifies the HMAC signature via
+`verify_user_id` and returns `None` on failure, so the handler closed
+every test connection with 1008 before sending anything
+(`assert len(messages_sent) >= 2` got 0). Pre-existing breakage logged as
+intake-00b783ad.
+
+**Done:**
+- `tests/test_websocket.py` — module-level `_authed_ws(user_id)` helper
+  (signed cookie via `sign_user_id`) now used by every test that drives
+  `websocket_events`; `TestBrainWebSocket._authed_ws` delegates to it.
+- `test_websocket_user_id_from_cookies` rewritten to the real contract:
+  signed cookie -> raw user_id; missing, unsigned, tampered
+  (`user_abc123.deadbeef`), and empty cookies -> `None`.
+- `MockWebSocket.close()` now records `close_code`/`close_reason`.
+- New `test_websocket_events_requires_auth` asserts missing AND unsigned
+  cookies are accepted then closed 1008 with no `connected` message —
+  parity with `test_brain_websocket_requires_auth`.
+- Note: two dispatch workers edited this file concurrently (first
+  spawned worker stalled but had already written the same fix); changes
+  were reconciled — deduped the shadowed `test_websocket_events_requires_auth`
+  and unified on `_authed_ws`.
+- **Verified:** `pytest tests/test_websocket.py` — 28 passed, 3 skipped
+  (skips = dormant brain REST endpoints), ~47 min (conftest rebuilds
+  app+DB per test). `py_compile` clean.
+
+## Session — 2026-11-21 — SemptifyFeedback.confirm() added; auto_mode_panel native confirm() removed (swe-2, task task-ac26452d)
+
+**Context:** `auto_mode_panel.html` `resetToDefaults()` used the blocking
+native `confirm()` dialog — the last native-confirm callsite on that page.
+SemptifyFeedback (the global toast helper loaded via `base.html`) had no
+confirm component, so removing it required building one.
+
+**Done:**
+- `static/components/feedback.js` — new `SemptifyFeedback.confirm(message,
+  opts)` — Promise-based in-app confirm modal (`se-cf` classes injected
+  alongside the `se-pt` toast styles). `opts`: `title`, `confirmLabel`,
+  `cancelLabel`, `danger` (error-colored confirm + focuses Cancel).
+  `role="dialog"`/`aria-modal`, Escape + backdrop-click cancel, focus
+  restore on close, concurrent calls serialized through a queue. Purely
+  additive — existing `start/done/success/error/info/story` API untouched.
+- `app/templates/pages/auto_mode_panel.html` — `resetToDefaults()` now
+  `await`s `SemptifyFeedback.confirm(...)`; native `confirm()` gone.
+
+**Verified:** `node --check` clean; `py_compile app/main.py` clean; Jinja
+parse clean; live on :8025 — dialog "Reset to defaults" renders
+(role=dialog, Cancel + Reset), Cancel/Escape leave checkboxes untouched,
+Reset restores defaults and runs save; backdrop blocks underlying clicks.
+Note: `/api/auto-mode/*` endpoints not mounted on the verification
+instance — save toast can't fire there (pre-existing, unrelated).
+
 ## Session — 2026-11-23 — main CI back to green: style guard + stub check (Devin)
 
 ### Guardrail Engine Run — 2026-11-23T00:49:03+00:00
@@ -17650,3 +17802,28 @@ sessions); embedded images are dropped from edited exports (noted to user).
 - **Intake:** `intake-370dde1d` — brain REST endpoints also have zero
   auth_gate (medium, dormant); `intake-00b783ad` — `TestWebSocketEvents`
   tests stale, unsigned cookies vs `verify_user_id` (low, pre-existing).
+
+## 2026-11-22 — native dialogs sweep pt 2: SemptifyFeedback.prompt + shared-JS confirm conversions (task-5745e440, swe-2)
+
+- **Added `SemptifyFeedback.prompt(message, opts|defaultValue)`** to
+  `static/components/feedback.js` — Promise resolving to the entered
+  string or `null` on cancel, reusing the same se-cf dialog machinery as
+  `.confirm()` (queue-serialized, Esc/backdrop/Cancel → null, Enter
+  submits, input focused with default selected). Second arg may be an
+  opts object `{ title, defaultValue, placeholder, confirmLabel,
+  cancelLabel }` or a plain string for drop-in `prompt(msg, default)`.
+- **Converted the last 2 native `confirm()` calls in shared static JS:**
+  `static/js/core/app.js` (storage reconnect gate) and
+  `static/js/core/vault-portal.js` (vault reconnect gate) →
+  `await SemptifyFeedback.confirm`.
+- **Converted the 2 named `prompt()` sites:** `admin_dashboard.html`
+  `resetUserGates` (gate list entry) and `admin_dev_lab.html`
+  `promoteIdea` (module name entry) → `await SemptifyFeedback.prompt`
+  with native default values preserved.
+- **Verified:** `node --check` on all three JS files plus extracted
+  script blocks of both templates (clean); DOM-stub run of feedback.js
+  exercised confirm true/false, prompt value/null, string-default, and
+  queue serialization — all pass.
+- **Intake:** `intake-6fc5e88a` — 4 `alert()` calls remain in
+  vault-portal.js (low); `intake-84bca1e4` — 3 `prompt()` sites remain in
+  office_inbox/advocate_client_detail/office_signer (low).

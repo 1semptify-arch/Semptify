@@ -3187,3 +3187,39 @@ body.shell .shell-path-cta {
     animation: none;
   }
 }
+
+/* ============================================================================
+   SMART TOOLBAR — state-projected action row
+   (.devin/rules/12-state-driven-actions.md — actions are projected by the
+   backend; disabled actions are never rendered at all)
+   ============================================================================ */
+.smart-toolbar__form { margin: 0; }
+.smart-toolbar__overflow { position: relative; }
+.smart-toolbar__overflow > summary { list-style: none; user-select: none; }
+.smart-toolbar__overflow > summary::-webkit-details-marker { display: none; }
+.smart-toolbar__menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-1));
+  min-width: 10rem;
+  padding: var(--space-1);
+  background: var(--bg-page);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  z-index: 30;
+}
+.smart-toolbar__menu form { margin: 0; }
+.smart-toolbar__menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-primary);
+  text-decoration: none;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font: inherit;
+}
+.smart-toolbar__menu-item:hover { background: var(--primary-50); }

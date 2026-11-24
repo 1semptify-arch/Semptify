@@ -493,7 +493,7 @@ async function promoteModule() {
   if (!currentModulePath) return;
   const m = allModules.find(x => x.module_path === currentModulePath);
   if (!m || !m.next_lifecycle) return;
-  if (!confirm(`Promote ${currentModulePath} from ${m.lifecycle} to ${m.next_lifecycle}?`)) return;
+  if (!await SemptifyFeedback.confirm(`Promote ${currentModulePath} from ${m.lifecycle} to ${m.next_lifecycle}?`, { title: 'Promote module', confirmLabel: 'Promote' })) return;
 
   try {
     const resp = await fetch('/dev/lab/' + encodeURIComponent(currentModulePath) + '/promote', {
@@ -603,9 +603,9 @@ async function submitIdea() {
 }
 
 async function promoteIdea(ideaId, ideaName) {
-  const moduleName = prompt(`Enter module name for idea "${ideaName}":`, ideaName.toLowerCase().replace(/\s+/g, '_'));
+  const moduleName = await SemptifyFeedback.prompt(`Enter module name for idea "${ideaName}":`, { title: 'Promote idea', defaultValue: ideaName.toLowerCase().replace(/\s+/g, '_') });
   if (!moduleName) return;
-  const action = confirm('Click OK to scaffold internal module, Cancel to generate external SDK template') ? 'scaffold' : 'sdk_template';
+  const action = await SemptifyFeedback.confirm('Scaffold an internal module, or generate an external SDK template?', { title: 'Promote idea', confirmLabel: 'Scaffold', cancelLabel: 'SDK template' }) ? 'scaffold' : 'sdk_template';
   try {
     const resp = await fetch(`/dev/lab/ideas/${ideaId}/promote`, {
       method: 'POST',

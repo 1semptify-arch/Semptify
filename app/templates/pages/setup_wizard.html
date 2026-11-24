@@ -312,6 +312,12 @@
     padding: var(--space-xs) 0;
   }
 
+  .smart-toolbar {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+  }
+
   @media (max-width: 768px) {
     .wizard-page {
       padding: var(--space-md) var(--space-sm);
@@ -459,20 +465,19 @@
     <span class="wizard-reaction__text"></span>
   </div>
 
-  <!-- Navigation -->
+  <!-- Navigation — actions are projected from the current step (rule 12):
+       there is no Back on step 1 and no Next on the last step, so those
+       actions are not rendered at all. -->
   <div class="wizard-nav">
-    <button class="btn btn--secondary" id="wizard-back-btn" disabled>Back</button>
-    <div class="wizard-nav__right">
-      <button class="btn btn--secondary" id="wizard-skip-btn">Skip for now</button>
-      <button class="btn btn--primary" id="wizard-next-btn">Next</button>
-      <button class="btn btn--primary" id="wizard-finish-btn" style="display:none;">Finish</button>
-    </div>
+    <div id="wizard-nav-left"></div>
+    <div class="wizard-nav__right" id="wizard-nav-right"></div>
   </div>
 
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/components/smart-toolbar.js"></script>
 <script>
   (function () {
     var currentStep = 1;
@@ -480,10 +485,8 @@
 
     var panels = document.querySelectorAll('.wizard-panel');
     var steps = document.querySelectorAll('.wizard-step');
-    var backBtn = document.getElementById('wizard-back-btn');
-    var nextBtn = document.getElementById('wizard-next-btn');
-    var finishBtn = document.getElementById('wizard-finish-btn');
-    var skipBtn = document.getElementById('wizard-skip-btn');
+    var navLeft = document.getElementById('wizard-nav-left');
+    var navRight = document.getElementById('wizard-nav-right');
     var reaction = document.getElementById('wizard-reaction');
     var reactionText = reaction.querySelector('.wizard-reaction__text');
 
@@ -509,17 +512,42 @@
         }
       });
 
-      backBtn.disabled = currentStep === 1;
+      renderNav();
+    }
 
-      if (currentStep === totalSteps) {
-        nextBtn.style.display = 'none';
-        finishBtn.style.display = 'inline-block';
-        skipBtn.style.display = 'none';
-      } else {
-        nextBtn.style.display = 'inline-block';
-        finishBtn.style.display = 'none';
-        skipBtn.style.display = 'inline-block';
-      }
+    // Step → which nav actions exist (rule 12 — nothing disabled, nothing
+    // rendered that isn't valid for the current step).
+    var NAV_ACTIONS = {
+      back: { id: 'back', label: 'Back', method: 'CALL' },
+      skip: { id: 'skip', label: 'Skip for now', method: 'CALL' },
+      next: { id: 'next', label: 'Next', method: 'CALL' },
+      finish: { id: 'finish', label: 'Finish', method: 'CALL' },
+    };
+    var NAV_LEFT_RULES = {
+      step1: {},
+      step2: { contextual: ['back'] },
+      step3: { contextual: ['back'] },
+    };
+    var NAV_RIGHT_RULES = {
+      step1: { primary: 'next', contextual: ['skip'] },
+      step2: { primary: 'next', contextual: ['skip'] },
+      step3: { primary: 'finish' },
+    };
+    var NAV_CLASSES = { wrap: 'smart-toolbar', primary: 'btn btn--primary', ghost: 'btn btn--secondary' };
+
+    function navAct(action) {
+      if (action.id === 'next') onNext();
+      else if (action.id === 'back') onBack();
+      else if (action.id === 'skip') onSkip();
+      else if (action.id === 'finish') onFinish();
+    }
+
+    function renderNav() {
+      var state = 'step' + currentStep;
+      SmartToolbar.render(navLeft, SmartToolbar.project(state, NAV_ACTIONS, NAV_LEFT_RULES),
+        { act: navAct, classes: NAV_CLASSES });
+      SmartToolbar.render(navRight, SmartToolbar.project(state, NAV_ACTIONS, NAV_RIGHT_RULES),
+        { act: navAct, classes: NAV_CLASSES });
     }
 
     function saveStep(step) {
@@ -557,7 +585,7 @@
         });
     }
 
-    nextBtn.addEventListener('click', function () {
+    function onNext() {
       saveStep(currentStep).then(function () {
         if (currentStep < totalSteps) {
           currentStep++;
@@ -566,17 +594,17 @@
       }).catch(function () {
         // stay on current step
       });
-    });
+    }
 
-    backBtn.addEventListener('click', function () {
+    function onBack() {
       if (currentStep > 1) {
         currentStep--;
         setReaction('idle', '');
         updateUI();
       }
-    });
+    }
 
-    finishBtn.addEventListener('click', function () {
+    function onFinish() {
       saveStep(currentStep).then(function () {
         setReaction('done', 'Setup complete!');
         setTimeout(function () {
@@ -585,15 +613,15 @@
       }).catch(function () {
         // stay on current step
       });
-    });
+    }
 
-    skipBtn.addEventListener('click', function () {
+    function onSkip() {
       if (currentStep < totalSteps) {
         currentStep++;
         setReaction('idle', '');
         updateUI();
       }
-    });
+    }
 
     updateUI();
   })();

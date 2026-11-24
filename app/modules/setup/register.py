@@ -15,6 +15,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=True,
+        allowed_routes=("/api/setup/check",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -28,6 +30,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=False,
+        allowed_routes=("/api/setup/skip",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -41,6 +45,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=False,
+        allowed_routes=("/api/setup/reset",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -54,6 +60,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=True,
+        allowed_routes=("/api/setup/status",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -67,6 +75,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=False,
+        allowed_routes=("/api/setup/profile",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -80,6 +90,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=True,
+        allowed_routes=("/api/setup/profile",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -93,6 +105,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=False,
+        allowed_routes=("/api/setup/case",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -106,6 +120,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=True,
+        allowed_routes=("/api/setup/case",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -119,6 +135,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=False,
+        allowed_routes=("/api/setup/storage",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -132,6 +150,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=True,
+        allowed_routes=("/api/setup/storage",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -145,6 +165,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=False,
+        allowed_routes=("/api/setup/documents/upload",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -158,6 +180,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=True,
+        allowed_routes=("/api/setup/documents",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -171,6 +195,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=False,
+        allowed_routes=("/api/setup/documents/process",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -184,6 +210,8 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=False,
+        allowed_routes=("/api/setup/complete",),
+        allowed_prefixes=("/api/setup",),
     )
 )
 
@@ -197,5 +225,29 @@ register_function_group(
         outputs=("result",),
         dependencies=("app.modules.setup.router",),
         deterministic=True,
+        allowed_routes=("/api/setup/summary",),
+        allowed_prefixes=("/api/setup",),
+    )
+)
+
+register_function_group(
+    FunctionGroupContract(
+        module="setup",
+        group_name="setup_wizard_save_step",
+        title="Setup Wizard Save Step (POST /setup) (SSOT)",
+        description=(
+            "CANONICAL first-run wizard persistence — POST /setup (page route in "
+            "app/main.py). Step 1 confirms storage; step 2 writes the profile to "
+            "the user's vault (VAULT_PROFILE_FILE); step 3 creates the first case "
+            "via incident_store.create_incident + CASE_DATA overlay and marks "
+            "setup complete. Auth: yellow_access — persistence requires a "
+            "connected vault by design."
+        ),
+        inputs=("step", "name?", "role?", "case_title?", "situation?"),
+        outputs=("status", "case_id?"),
+        dependencies=("app.main", "app.services.incident_store"),
+        deterministic=False,
+        allowed_routes=("/setup",),
+        allowed_prefixes=("/setup",),
     )
 )

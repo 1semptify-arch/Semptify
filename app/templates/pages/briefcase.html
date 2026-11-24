@@ -63,7 +63,7 @@
   <div class="action-bar">
     <input type="file" id="filePicker" style="display:none" multiple>
     <button class="btn btn-secondary" onclick="document.getElementById('filePicker').click()">Add Document</button>
-    <button class="btn btn-primary" id="exportBtn" onclick="exportBriefcase()" {% if not documents %}disabled{% endif %}>Export Briefcase</button>
+    {% if documents %}<button class="btn btn-primary" id="exportBtn" onclick="exportBriefcase()">Export Briefcase</button>{% endif %}
   </div>
 
   <div class="reaction working hidden" id="reactionWorking">Exporting...</div>
@@ -73,8 +73,8 @@
 
 {% block scripts %}
 <script>
-  function removeDoc(index) {
-    if (confirm('Remove this document from your briefcase?')) {
+  async function removeDoc(index) {
+    if (await SemptifyFeedback.confirm('Remove this document from your briefcase?', { confirmLabel: 'Remove' })) {
       fetch('/briefcase/remove/' + index, { method: 'POST' }).then(() => location.reload());
     }
   }

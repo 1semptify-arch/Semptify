@@ -74,7 +74,7 @@ from app.core.cookie_auth import extract_user_id
 from app.core.database import close_db, get_db, init_db
 from app.core.navigation import navigation
 from app.core.runtime_profile import log_active_profile
-from app.core.security import UserContext, green_access
+from app.core.security import UserContext, green_access, yellow_access
 from app.core.ssot_guard import ssot_redirect
 from app.core.tenant_briefcase import get_tenant_briefcase
 from app.core.role_surfacing import get_role_surfacing
@@ -2316,17 +2316,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if css_path.exists():
         fastapi_app.mount("/css", StaticFiles(directory=str(css_path)), name="css_static")
 
-    # Turnbuchalla public bill platform — self-contained static parchment
-    # pages (index/comment/record/references/supporters). html=True serves
-    # index.html at /turnbuchalla and /turnbuchalla/.
-    turnbuchalla_path = BASE_PATH / "app" / "static" / "turnbuchalla"
-    if turnbuchalla_path.exists():
-        fastapi_app.mount(
-            "/turnbuchalla",
-            StaticFiles(directory=str(turnbuchalla_path), html=True),
-            name="turnbuchalla_static",
-        )
-
     # =========================================================================
     # Onboarding Redirect (before catch-all)
     # =========================================================================
@@ -4193,6 +4182,32 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         user_id = str(_raw) if _raw is not None else None
         connected = bool(user_id and is_valid_storage_user(user_id))
         provider = get_provider_from_user_id(user_id) if connected else None
+
+        # Hydrate any previously saved wizard profile from the user's vault so
+        # re-visiting the page pre-fills step 2. Best-effort: unreadable or
+        # absent profile data must never break the page load.
+        profile: dict = {}
+        try:
+            uid = extract_user_id(request)
+            if uid:
+                from app.core.auto_refresh import ensure_valid_token
+                from app.core.vault_paths import VAULT_PROFILE_FILE
+                from app.services.storage import get_provider
+
+                token_ok, tok, _status = await ensure_valid_token(uid)
+                if token_ok and tok and tok.access_token:
+                    storage = get_provider(
+                        get_provider_from_user_id(uid) or tok.provider,
+                        access_token=tok.access_token,
+                    )
+                    raw = await storage.download_file(VAULT_PROFILE_FILE)
+                    if raw:
+                        loaded = json.loads(raw.decode("utf-8"))
+                        if isinstance(loaded, dict):
+                            profile = loaded
+        except Exception as exc:
+            logger.debug("Setup wizard profile hydrate skipped: %s", exc)
+
         return templates.TemplateResponse(
             request,
             "pages/setup_wizard.html",
@@ -4206,9 +4221,119 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                         else "You need to connect a storage provider to continue."
                     ),
                 },
-                "profile": {},
+                "profile": profile,
             },
         )
+
+    @fastapi_app.post("/setup")
+    async def setup_wizard_save(request: Request, user: UserContext = Depends(yellow_access)):
+        """Persist a setup-wizard step.
+
+        Step 1 confirms the storage connection (yellow_access already proves a
+        valid session + live token). Step 2 writes the profile to the user's
+        own vault — profile data is user-owned and the SSOT privacy rule keeps
+        names out of Semptify's DB. Step 3 creates the first case through the
+        canonical incident_store + CASE_DATA overlay path and marks setup
+        complete for the /api/setup/check first-run gate.
+        """
+        try:
+            body = await request.json()
+        except Exception:
+            body = {}
+        if not isinstance(body, dict):
+            body = {}
+        step = body.get("step")
+
+        if step == 1:
+            return {
+                "status": "saved",
+                "step": 1,
+                "storage": {"connected": True, "provider": user.provider.value},
+                "next_step": 2,
+            }
+
+        if step == 2:
+            name = str(body.get("name") or "").strip()
+            role = str(body.get("role") or "").strip()
+            if not name:
+                raise HTTPException(status_code=400, detail="Profile name is required")
+
+            from app.core.vault_paths import VAULT_PROFILE_FILE
+            from app.services.storage import get_provider
+
+            dest_folder, profile_name = VAULT_PROFILE_FILE.rsplit("/", 1)
+            storage = get_provider(user.provider.value, access_token=user.access_token)
+            if not await storage.create_folder(dest_folder):
+                raise HTTPException(status_code=502, detail=f"Could not prepare vault folder {dest_folder}")
+            profile = {
+                "name": name,
+                "role": role,
+                "source": "setup_wizard",
+                "updated_at": utc_now().isoformat(),
+            }
+            try:
+                uploaded = await storage.upload_file(
+                    file_content=json.dumps(profile, indent=2).encode("utf-8"),
+                    destination_path=dest_folder,
+                    filename=profile_name,
+                    mime_type="application/json",
+                )
+            except Exception as exc:
+                logger.error("Setup wizard profile write failed: %s", exc)
+                raise HTTPException(status_code=502, detail="Could not save profile to storage") from exc
+            if not uploaded:
+                raise HTTPException(status_code=502, detail="Could not save profile to storage")
+            return {"status": "saved", "step": 2, "next_step": 3}
+
+        if step == 3:
+            case_title = str(body.get("case_title") or "").strip()
+            situation = str(body.get("situation") or "").strip()
+            case_id = None
+            if case_title or situation:
+                from app.modules.case_builder.router import save_case
+                from app.services.incident_store import create_incident
+
+                try:
+                    incident = await create_incident(
+                        user,
+                        title=case_title or "First case",
+                        description=situation or None,
+                        status="active",
+                    )
+                except Exception as exc:
+                    logger.error("Setup wizard case create failed: %s", exc)
+                    raise HTTPException(status_code=502, detail="Could not create case record") from exc
+                if incident is None:
+                    raise HTTPException(status_code=502, detail="Could not create case record")
+                case_id = str(incident.incident_id)
+                try:
+                    # The CASE_DATA narrative carries the identifying content —
+                    # save_case deliberately normalizes the incident pointer's
+                    # title to non-PII structure ("Case: uncategorized").
+                    narrative = "\n\n".join(part for part in (case_title, situation) if part)
+                    await save_case(
+                        case_id,
+                        {
+                            "user_id": user.user_id,
+                            "narrative": narrative,
+                            "created_at": utc_now().isoformat(),
+                            "updated_at": utc_now().isoformat(),
+                        },
+                        user.user_id,
+                    )
+                except Exception as exc:
+                    logger.error("Setup wizard case overlay write failed: %s", exc)
+                    raise HTTPException(status_code=502, detail="Could not save case details") from exc
+
+            marker = Path(__file__).resolve().parent / "data" / ".setup_complete"
+            marker.parent.mkdir(parents=True, exist_ok=True)
+            marker.write_text(
+                f"Setup completed by user {user.user_id} at {utc_now().isoformat()}",
+                encoding="utf-8",
+            )
+            return {"status": "complete", "step": 3, "case_id": case_id, "redirect": "/dashboard"}
+
+        raise HTTPException(status_code=400, detail=f"Unknown setup step: {step}")
 
     # =========================================================================
     # Eviction Defense Page

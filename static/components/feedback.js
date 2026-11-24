@@ -1,6 +1,7 @@
 /* SemptifyFeedback — Unified Action Feedback Helper (standalone JS)
    Load via: <script src="/static/components/feedback.js"></script>
-   Provides: start(), done(), success(), error(), info(), story()
+   Provides: start(), done(), success(), error(), info(), story(),
+             confirm(), prompt()
    Reuses .btn--loading class from loading-overlay.html
 */
 (function () {
@@ -28,6 +29,17 @@
             '.btn--loading{position:relative;color:transparent !important;pointer-events:none}',
             '.btn--loading::after{content:"";position:absolute;top:50%;left:50%;width:20px;height:20px;margin-top:-10px;margin-left:-10px;border:2px solid color-mix(in srgb, var(--bg-card), transparent 70%);border-top-color:var(--color-accent, var(--color-info));border-radius:50%;animation:se-pt-loading-spin 1s linear infinite}',
             '@keyframes se-pt-loading-spin{to{transform:rotate(360deg)}}',
+            '.se-cf-backdrop{position:fixed;top:0;left:0;right:0;bottom:0;z-index:10001;background:color-mix(in srgb, var(--color-black), transparent 55%);display:flex;align-items:center;justify-content:center;padding:1rem;animation:se-cf-fade 0.15s ease}',
+            '@keyframes se-cf-fade{from{opacity:0}to{opacity:1}}',
+            '.se-cf{background:var(--color-bg-card,var(--bg-card,#fff));color:var(--color-text-primary,var(--text-primary,inherit));border:1px solid var(--color-border,var(--border-color,#e5e5e5));border-radius:var(--radius-md,8px);box-shadow:0 12px 40px color-mix(in srgb, var(--color-black), transparent 70%);max-width:26rem;width:100%;padding:1.25rem 1.5rem}',
+            '.se-cf-title{font-weight:600;font-size:1rem;margin:0 0 0.5rem}',
+            '.se-cf-msg{font-size:0.9rem;line-height:1.5;margin:0 0 1.25rem;color:var(--color-text-secondary,var(--text-secondary,inherit));white-space:pre-line}',
+            '.se-cf-actions{display:flex;justify-content:flex-end;gap:0.5rem}',
+            '.se-cf-btn{padding:0.5rem 1rem;border-radius:var(--radius-input,6px);font-size:0.875rem;font-weight:500;cursor:pointer;border:1px solid var(--color-border,var(--border-color,#d5d5d5));background:none;color:inherit;font-family:inherit}',
+            '.se-cf-btn--confirm{background:var(--color-primary);border-color:transparent;color:var(--text-inverse,#fff)}',
+            '.se-cf-btn--danger{background:var(--color-error,var(--color-primary));border-color:transparent;color:var(--text-inverse,#fff)}',
+            '.se-cf-input{display:block;width:100%;box-sizing:border-box;margin:0 0 1.25rem;padding:0.5rem 0.75rem;font-size:0.875rem;font-family:inherit;color:inherit;background:var(--color-bg,var(--bg-card,#fff));border:1px solid var(--color-border,var(--border-color,#d5d5d5));border-radius:var(--radius-input,6px)}',
+            '.se-cf-input:focus{outline:2px solid var(--color-primary,var(--color-info));outline-offset:1px}',
             '@media (max-width:640px){.se-pt-container{bottom:0.75rem;right:0.75rem;left:0.75rem;max-width:none}}',
         ].join('\n');
         document.head.appendChild(style);
@@ -153,6 +165,140 @@
         enqueue('story', title, body, { timeout: 0 });
     }
 
+    // ---- in-app dialogs (se-cf) — Promise-based replacements for native confirm()/prompt() ----
+    var confirmQueue = [];
+    var confirmBackdrop = null;
+    var confirmResolve = null;
+    var confirmPrevFocus = null;
+    var confirmInput = null;
+
+    function confirmKeyHandler(e) {
+        if (e.key === 'Escape') {
+            e.stopPropagation();
+            closeConfirm(false);
+        }
+    }
+
+    function closeConfirm(result) {
+        var backdrop = confirmBackdrop;
+        var resolve = confirmResolve;
+        var input = confirmInput;
+        confirmBackdrop = null;
+        confirmResolve = null;
+        confirmInput = null;
+        document.removeEventListener('keydown', confirmKeyHandler, true);
+        if (backdrop && backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
+        if (confirmPrevFocus && confirmPrevFocus.focus) {
+            try { confirmPrevFocus.focus(); } catch (e) { /* element may be gone */ }
+        }
+        confirmPrevFocus = null;
+        if (resolve) resolve(input ? (result ? input.value : null) : result);
+        drainConfirmQueue();
+    }
+
+    function openConfirm(item) {
+        var opts = item.opts;
+        confirmResolve = item.resolve;
+        confirmPrevFocus = document.activeElement;
+
+        var backdrop = document.createElement('div');
+        backdrop.className = 'se-cf-backdrop';
+        backdrop.addEventListener('click', function (e) {
+            if (e.target === backdrop) closeConfirm(false);
+        });
+
+        var dialog = document.createElement('div');
+        dialog.className = 'se-cf';
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('aria-labelledby', 'se-cf-title');
+        dialog.setAttribute('aria-describedby', 'se-cf-msg');
+
+        var title = document.createElement('h2');
+        title.className = 'se-cf-title';
+        title.id = 'se-cf-title';
+        title.textContent = opts.title || (item.isPrompt ? 'Input' : 'Confirm');
+        dialog.appendChild(title);
+
+        var msg = document.createElement('p');
+        msg.className = 'se-cf-msg';
+        msg.id = 'se-cf-msg';
+        msg.textContent = item.message;
+        dialog.appendChild(msg);
+
+        var input = null;
+        if (item.isPrompt) {
+            input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'se-cf-input';
+            input.value = opts.defaultValue != null ? opts.defaultValue : '';
+            if (opts.placeholder) input.placeholder = opts.placeholder;
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    closeConfirm(true);
+                }
+            });
+            dialog.appendChild(input);
+            confirmInput = input;
+        }
+
+        var actions = document.createElement('div');
+        actions.className = 'se-cf-actions';
+
+        var cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'se-cf-btn';
+        cancelBtn.textContent = opts.cancelLabel || 'Cancel';
+        cancelBtn.addEventListener('click', function () { closeConfirm(false); });
+        actions.appendChild(cancelBtn);
+
+        var okBtn = document.createElement('button');
+        okBtn.type = 'button';
+        okBtn.className = 'se-cf-btn ' + (opts.danger ? 'se-cf-btn--danger' : 'se-cf-btn--confirm');
+        okBtn.textContent = opts.confirmLabel || 'OK';
+        okBtn.addEventListener('click', function () { closeConfirm(true); });
+        actions.appendChild(okBtn);
+
+        dialog.appendChild(actions);
+        backdrop.appendChild(dialog);
+        document.body.appendChild(backdrop);
+        confirmBackdrop = backdrop;
+
+        document.addEventListener('keydown', confirmKeyHandler, true);
+        if (input) {
+            input.focus();
+            input.select();
+        } else {
+            (opts.danger ? cancelBtn : okBtn).focus();
+        }
+    }
+
+    function drainConfirmQueue() {
+        if (confirmResolve !== null || confirmQueue.length === 0) return;
+        openConfirm(confirmQueue.shift());
+    }
+
+    function confirm(message, opts) {
+        return new Promise(function (resolve) {
+            confirmQueue.push({ message: message, opts: opts || {}, resolve: resolve, isPrompt: false });
+            drainConfirmQueue();
+        });
+    }
+
+    // Promise-based replacement for native prompt() — resolves the entered
+    // string (possibly ''), or null on Cancel/Escape/backdrop click.
+    // Second arg may be an opts object { title, defaultValue, placeholder,
+    // confirmLabel, cancelLabel } or a plain string defaultValue for
+    // drop-in replacement of prompt(message, defaultValue).
+    function prompt(message, opts) {
+        if (typeof opts === 'string') opts = { defaultValue: opts };
+        return new Promise(function (resolve) {
+            confirmQueue.push({ message: message, opts: opts || {}, resolve: resolve, isPrompt: true });
+            drainConfirmQueue();
+        });
+    }
+
     window.SemptifyFeedback = {
         start: start,
         done: done,
@@ -160,5 +306,44 @@
         error:   function (msg, opts) { enqueue('error',   'Error',   msg, opts); },
         info:    function (msg, opts) { enqueue('info',    'Tip',     msg, opts); },
         story:   story,
+        confirm: confirm,
+        prompt:  prompt,
     };
+})();
+
+// ---- [data-confirm] delegation ---------------------------------------------
+// Declarative confirmations for the smart toolbar (rule 12): any
+// <form data-confirm="..."> or <a data-confirm="..."> routes through
+// SemptifyFeedback.confirm — the canonical in-app dialog. Native confirm()
+// is banned repo-wide. Add data-confirm-danger for the destructive style.
+(function () {
+    if (!window.SemptifyFeedback || !window.SemptifyFeedback.confirm) return;
+
+    document.addEventListener('submit', function (e) {
+        var f = e.target.closest('form[data-confirm]');
+        if (!f) return;
+        if (f.dataset.confirmed === '1') { delete f.dataset.confirmed; return; }
+        e.preventDefault();
+        window.SemptifyFeedback
+            .confirm(f.dataset.confirm, { danger: f.hasAttribute('data-confirm-danger') })
+            .then(function (ok) {
+                if (!ok) return;
+                f.dataset.confirmed = '1';
+                if (f.requestSubmit) f.requestSubmit(); else f.submit();
+            });
+    });
+
+    document.addEventListener('click', function (e) {
+        var a = e.target.closest('a[data-confirm]');
+        if (!a) return;
+        if (a.dataset.confirmed === '1') { delete a.dataset.confirmed; return; }
+        e.preventDefault();
+        window.SemptifyFeedback
+            .confirm(a.dataset.confirm, { danger: a.hasAttribute('data-confirm-danger') })
+            .then(function (ok) {
+                if (!ok) return;
+                a.dataset.confirmed = '1';
+                a.click();
+            });
+    });
 })();

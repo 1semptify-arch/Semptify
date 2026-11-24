@@ -323,7 +323,7 @@
     }
 
     async function signDelivery(id) {
-      if (!confirm('By signing, you acknowledge you have read and agree to this document. Proceed?')) return;
+      if (!await SemptifyFeedback.confirm('By signing, you acknowledge you have read and agree to this document. Proceed?', { title: 'Sign document', confirmLabel: 'Sign' })) return;
       try {
         const resp = await fetch(`/api/delivery/${id}/sign`, {
           method: 'POST',
@@ -342,7 +342,7 @@
     }
 
     async function rejectDelivery(id) {
-      const reason = prompt('Please provide a reason for rejection (optional):') || '';
+      const reason = await SemptifyFeedback.prompt('Please provide a reason for rejection (optional):') || '';
       try {
         const resp = await fetch(`/api/delivery/${id}/reject`, {
           method: 'POST',

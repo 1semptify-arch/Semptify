@@ -204,7 +204,7 @@
     });
 
     document.getElementById('reset-btn').addEventListener('click', async () => {
-        if (!currentCaseId || !confirm('Reset checklist to default? Your notes will be replaced.')) return;
+        if (!currentCaseId || !await SemptifyFeedback.confirm('Reset checklist to default? Your notes will be replaced.', { title: 'Reset checklist', confirmLabel: 'Reset', danger: true })) return;
         const res = await window.fetchWithCSRF(`/api/case-builder/cases/${currentCaseId}/fca/readiness/reset`, {
             method: 'POST'
         });

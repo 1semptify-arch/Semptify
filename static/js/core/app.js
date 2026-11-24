@@ -98,7 +98,7 @@ function uploadToVault() {
           result.error === 'storage_required'
         ) {
           const redirect = result.redirect_url || `/storage/reconnect?return_to=${returnTo}`;
-          if (confirm('Your storage connection expired. Reconnect now?')) {
+          if (await SemptifyFeedback.confirm('Your storage connection expired. Reconnect now?', { title: 'Reconnect storage', confirmLabel: 'Reconnect' })) {
             window.location.href = redirect;
           }
           return;
