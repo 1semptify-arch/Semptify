@@ -15,7 +15,7 @@
     }
   },
   "section": "how_to",
-  "updated": "2026-11-22",
+  "updated": "2026-11-23",
   "_entry_template": {
     "id": "template_do_not_publish",
     "title": "How to ___ (replace with the real task)",
@@ -151,6 +151,160 @@
       ],
       "related_subjects": ["law_library", "tenant_rights"],
       "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-22; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "bp_read_the_draft",
+      "title": "Read the draft your way",
+      "summary": "How to read the Rent Assurance & Deposit Protection Act draft at semptify.org/bill — through the lens that fits you, in legal wording or plain language, one clause or the whole record.",
+      "steps": [
+        {"title": "Open the draft", "body": "Go to semptify.org/bill and open The bill. The draft is 23 clauses across a preamble and four titles, laid out in order."},
+        {"title": "Pick your lens", "body": "Near the top, choose Renter lens, Provider lens, or Lawmaker lens. The notes under each clause change to speak to that reader."},
+        {"title": "Choose how it reads", "body": "The default shows the legal wording with an 'In plain language' reading under it. The 'Plain only' link hides the legal wording so you can read just the plain version."},
+        {"title": "Open one clause", "body": "Click a clause code, like I-2, for its own page — the wording, the audience notes, its sources, its margin, and a mark form for that clause."},
+        {"title": "Search the whole record", "body": "Open Search and type a word or phrase. One query covers the clauses, margin marks, changes, requests, editions, and locked decisions."}
+      ],
+      "tips": [
+        "The platform picks a screen layout for your device. You can change it yourself — Auto, Desktop, TV / Present, or Mobile / Tablet in the top bar.",
+        "This is a working draft, not filed law. The plain-language text is a reading aid, and the page says so.",
+        "Select any phrase in the draft and the toolbar offers to mark it or propose an edit — the fastest way from reading to speaking."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-23; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "bp_read_the_margin",
+      "title": "Read the margin: the public ledger",
+      "summary": "How to read the margin at semptify.org/bill — every mark that has been read in, numbered and dated, with the Drafting Table's answers inline.",
+      "steps": [
+        {"title": "Open the margin", "body": "Go to semptify.org/bill and open The margin. It is the public ledger — every mark a steward has read onto the record, numbered M-0001 and up."},
+        {"title": "Read a mark", "body": "Each mark shows its number, its date, its kind — comment, question, or proposed edit — the clause it is about, and who signed it."},
+        {"title": "Read the answer", "body": "Official answers sit right under the mark they answer. 'Drafting Table' answers the substance. 'Statutory Review Lane' logs a point for the legal wording."},
+        {"title": "Follow the replies", "body": "Answers to earlier marks show 're: M-0001' so you can follow the chain. The # on each mark is a link you can copy to point at that exact mark."}
+      ],
+      "tips": [
+        "Only read-in marks appear. A mark you sent stays private until a person reads it in — check its status with your receipt code on the Track page.",
+        "A retracted mark stays visible, struck through, with a note. The record does not erase; it amends in the open.",
+        "Marks made on an open change proposal show as 'a contributor' — names are collected but never displayed there."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-23; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "bp_weigh_in_on_a_change",
+      "title": "Weigh in on a proposed wording change",
+      "summary": "How to join the discussion on an open change proposal at semptify.org/bill — the ledger where every proposed and incorporated change is decided in the open.",
+      "steps": [
+        {"title": "Open Changes", "body": "Go to semptify.org/bill and open Changes. It is the ledger of every proposed, incorporated, declined, and retracted change."},
+        {"title": "Find an open proposal", "body": "Choose the Proposed filter to see what is still open. Each card shows the change, the clause it touches, and its close date. If nothing is open, the page says so."},
+        {"title": "Read before you mark", "body": "Read the proposal and the discussion marks already under it so you are adding to the conversation, not repeating it."},
+        {"title": "Add a discussion mark", "body": "On an open proposal, write your mark in its discussion. It is collected like any mark, but it displays as 'a contributor' — your name is never shown on a change discussion."}
+      ],
+      "tips": [
+        "Nothing is deleted, only resolved. When a steward resolves a proposal, a public reason note is required — the reason is part of the record.",
+        "Only steward names appear on resolutions, and only with their consent. The steward roster names who holds that authority.",
+        "A comment on wording that is not tied to a proposal belongs on the Inkwell instead — it can still be read onto the margin."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-23; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "bp_record_a_position",
+      "title": "Record where an organization stands",
+      "summary": "How to put an organization, coalition, or office on the public positions ledger at semptify.org/bill — who stands where, on what, dated and sourced.",
+      "steps": [
+        {"title": "Open Positions", "body": "Go to semptify.org/bill and open Positions — 'Who stands where.' The record form is on that page."},
+        {"title": "Say who", "body": "Fill in Who — an organization, coalition, or office. This is required, and it is what publishes."},
+        {"title": "Pick a stance", "body": "Choose one: Supports, Opposes, Conditional, Neutral, or Watching."},
+        {"title": "Name the provision", "body": "Say what the stance is about — a title, a clause, or the whole draft. This is required too."},
+        {"title": "Add a public source and record it", "body": "A source is optional — a letter, testimony, or a meeting date. Then press Record position. It goes straight onto the public ledger."}
+      ],
+      "tips": [
+        "Positions post publicly right away. Unlike marks, there is no private intake step — record only what should be public.",
+        "Everything shows on the ledger: who, the stance, the provision, the date, and the source.",
+        "This form is for organizations and offices. To speak as yourself, mark the draft or sign the bill instead."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-23; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "bp_test_the_funding_math",
+      "title": "Test the funding math with your own rent",
+      "summary": "How to use the funding braid calculator at semptify.org/bill — put in a rent and see what the three-source assurance pool would cost, including the stress scenarios.",
+      "steps": [
+        {"title": "Open the Funding Braid calculator", "body": "Go to semptify.org/bill and open Funding Braid. It tests the draft's three-source funding math against the 2026-10-23 audit, tied to Clause II-3."},
+        {"title": "Enter your numbers", "body": "Fill in a monthly rent, the number of units, and whether the renter qualifies for the MN Renter's Credit — the M1PR credit, for incomes up to $77,570."},
+        {"title": "Read the three legs", "body": "Press Calculate. Leg 1 is escrowed deposit float. Leg 2 is the renter share, carried by the M1PR advance. Leg 3 is the landlord matched share. Together they make the assurance pool, shown as a percent of rent."},
+        {"title": "Read the stress scenarios", "body": "Below the result are three cases: the base case, a claims shock of plus 30 percent, and a recession shock of 6 percent statewide default. Each shows the cost per unit per month."}
+      ],
+      "tips": [
+        "Figures marked 'estimate' are derived openly and awaiting actuarial review — the platform says that itself, and the Claims ledger shows which figures are verified and which are estimates.",
+        "If the renter qualifies for M1PR, the renter share shows $0.00 a month in new out-of-pocket — it rides on a tax credit that already exists.",
+        "Try the rent you actually pay. The point of the calculator is to check the claim against your own numbers, not the platform's."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-23; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "bp_send_to_legislator",
+      "title": "Send the draft to your legislator",
+      "summary": "How to email the bill draft to the people who represent you in St. Paul — the campaign page at semptify.org/bill opens your mail with the ask already written.",
+      "steps": [
+        {"title": "Find who represents you", "body": "Open the Minnesota Legislature's 'Who Represents Me' tool at gis.lcc.mn.gov/iMaps/districts and type your address. It gives you your House and Senate members and their contact information."},
+        {"title": "Open the Campaign page", "body": "Go to semptify.org/bill and open Campaign. It tracks the push for the 2027 session — targets, contacted, in talks, endorsed — in the open."},
+        {"title": "Choose 'Send the draft to your legislator'", "body": "In the 'Do one thing' section, that link opens your mail app with the subject and the ask pre-written."},
+        {"title": "Address it and send", "body": "Paste in your legislator's address, add a line of your own if you want, and send. The written ask is short — read the draft, and carry it in the 2027 session."}
+      ],
+      "tips": [
+        "One specific note to your own representative gets read. A line about why housing matters to you, in your words, carries more than the form text alone.",
+        "The campaign page also shows the other small jobs — sign the bill, mark the draft, request a briefing, print the testimony packet. One is enough.",
+        "Nothing is uploaded or stored when you use the mail link — it just opens your own mail app."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-23; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "bp_teach_and_packet",
+      "title": "Teach the bill or print the testimony packet",
+      "summary": "How to walk a room through the draft at semptify.org/bill — a 14-stop teaching path, an 8-slide TV deck, and a printable packet of every mark on the record.",
+      "steps": [
+        {"title": "Open Teach", "body": "Go to semptify.org/bill and open Teach. It is a guided path of 14 stops, plain language first, built for classrooms, tenant meetings, and kitchen-table briefings."},
+        {"title": "Walk the stops in order", "body": "Each stop names a clause, gives the plain-language reading, and ends with a 'Talk about' prompt — one question to discuss before moving on."},
+        {"title": "Present the deck if you have a screen", "body": "The TV briefing deck is 8 slides. Use the arrow keys or number keys to move, F for fullscreen, and Esc to return to the desk. Speaker notes are built in."},
+        {"title": "Print the testimony packet", "body": "Open Testimony packet to get every read-in mark grouped by clause. Print it or save it as a PDF — that is what goes in a committee folder."}
+      ],
+      "tips": [
+        "The 'Student view (plain)' link lets a class or a meeting follow along in plain language on their own screens.",
+        "The packet only holds marks already read onto the margin — it grows as the public record grows, so print it close to the day you need it.",
+        "Teach the path, present the deck, leave the packet. Each piece does one job, and they work in that order."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-23; drafted per handoffs/library-guide-outline.md",
+      "status": "published"
+    },
+    {
+      "id": "bp_get_housing_help",
+      "title": "If this is about your own housing right now",
+      "summary": "The bill platform is for shaping a proposed law — it cannot take a case or answer an emergency. Here is where to reach real help first.",
+      "steps": [
+        {"title": "If it is urgent, call first", "body": "For an emergency, call 911. For a mental health or suicide crisis, call or text 988 — it runs around the clock. You can also text HOME to 741741."},
+        {"title": "For a housing problem, call HOME Line", "body": "HOME Line is 612-728-5767 — legal help for Minnesota renters on deposits, evictions, repairs, and notices. This is the line the mark form itself points to."},
+        {"title": "For referrals and legal aid", "body": "Dial 2-1-1 for statewide referrals to shelter, rent help, utilities, and food. LawHelpMN.org is the statewide legal-aid directory."},
+        {"title": "Then come back to the draft", "body": "Once the immediate problem has a path, the platform is still here — your read on the draft and your marks still shape what it becomes."}
+      ],
+      "tips": [
+        "A proposed law cannot fix an emergency — that is why the mark form carries the crisis note. The help lines exist for the urgent part.",
+        "The Help page on the platform lists only official public channels. Nothing there is an advertisement, and nobody paid to be listed.",
+        "Phone numbers change. The service's own website is the authority — the platform's Help page is a pointer, not a directory of record."
+      ],
+      "related_subjects": ["law_library", "tenant_rights"],
+      "source": "verified against the live bill platform (semptify.org/bill) on 2026-11-23; drafted per handoffs/library-guide-outline.md",
       "status": "published"
     }
   ]
